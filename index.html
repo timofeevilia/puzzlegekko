@@ -148,7 +148,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .turn-status{font-size:15px;margin-bottom:10px}
 .turn-status b{color:var(--gold)}
 .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim)}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:14px 0 10px;background:rgba(0,0,0,.25);border-radius:12px;padding:4px}
+.tabs{display:grid;grid-auto-columns:1fr;grid-auto-flow:column;gap:4px;margin:14px 0 10px;background:rgba(0,0,0,.25);border-radius:12px;padding:4px}
 .tabs button{border:none;background:transparent;color:var(--ink-dim);font-weight:800;font-size:12.5px;padding:8px 2px;border-radius:9px;position:relative}
 .tabs button[aria-selected="true"]{background:rgba(230,180,76,.18);color:var(--gold)}
 .tabs .badge{position:absolute;top:2px;right:4px;min-width:16px;height:16px;border-radius:8px;background:#e8392b;color:#fff;font-size:10px;line-height:16px;padding:0 4px}
@@ -228,6 +228,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .mines button.rv span{font-size:34px;display:block}
 
 /* setup */
+.hr-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.hr-list{grid-template-columns:minmax(0,1fr)}}
+.hr{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:10px 12px;border-radius:12px;background:rgba(255,240,210,.04);border:1px solid rgba(230,180,76,.15);cursor:pointer}
+.hr:has(input:checked){border-color:rgba(230,180,76,.55);background:rgba(230,180,76,.08)}
+.hr input{appearance:none;width:38px;height:22px;border-radius:11px;background:#4a3a30;position:relative;margin:2px 0 0;cursor:pointer;transition:background .15s}
+.hr input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#e9dcc4;transition:transform .15s}
+.hr input:checked{background:var(--gold)}
+.hr input:checked::after{transform:translateX(16px);background:#3a1a06}
+.hr input:disabled{opacity:.5;cursor:not-allowed}
+.hr b{display:block;font-size:14px}
+.hr span{font-size:12.5px;color:var(--ink-dim)}
+.rl-off{opacity:.45;text-decoration:line-through}
 .setup{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
 .hero{text-align:center;padding:28px 0 6px}
 .hero h1{font-family:var(--display);font-weight:400;color:var(--gold);font-size:clamp(44px,10vw,92px);margin:0;line-height:.9;text-shadow:0 3px 0 #4a0f08}
@@ -409,12 +421,26 @@ const MINIS={
   quiz:{n:"Name that place",ic:"🗺️",x:"Read the script and pick the place. Correct answer: +฿100."},
   chin:{n:"Chinlone kicks",ic:"🏐",x:"Keep the cane ball up. Tap Kick when the ball is in the green zone. Three kicks, ฿50 for each hit."},
   ruby:{n:"Mogok ruby mine",ic:"⛏️",x:"Three shafts. One hides a ruby (฿200), one jade (฿80), one only mud. Pick one."}};
+// Rules beyond classic Monopoly (plus the classic doubles rule) can be switched off before a game starts.
+const HOUSE=[
+  {k:"doubles",n:"Doubles roll again",x:"A pair gives another roll; three pairs in a row send you to Visa Run. Classic rule."},
+  {k:"pot",n:"Water Festival pot",x:"Taxes and fees collect in a pot. Land on Water Festival to take it all."},
+  {k:"lang",n:"Language moments",x:"Cards where you teach your partner a word. Get it right and you both earn ฿50."},
+  {k:"buyout",n:"Buyouts",x:"Force-buy a partner's place for 2× its price to complete your set. One per turn."},
+  {k:"loans",n:"Bank loans",x:"Borrow from the bank. 10% interest each time you pass Mingalaba."},
+  {k:"market",n:"Market",x:"SET stocks, Mogok rubies and gold. Prices move every turn."},
+  {k:"seasons",n:"Rising seasons",x:"Rents grow ×1.25, ×1.5 and ×2 as the rounds go by."},
+  {k:"minis",n:"Festival mini-games",x:"A quick bonus game every 5–8 turns."},
+];
+const ALL_ON=()=>Object.fromEntries(HOUSE.map(h=>[h.k,true]));
+function ruleOn(s,k){return !s||!s.rules||s.rules[k]!==false}
+function toPot(s,amt){if(ruleOn(s,"pot"))s.pot+=amt}
 const SELL_FEE=.03, LOAN_RATE=.1, BUYOUT_X=2;
 
 /* ================= GAME RULES (pure state transforms) ================= */
-function newGame(seats){
+function newGame(seats,rules){
   const mk={};ASSETS.forEach(a=>mk[a.k]={p:a.p0,h:[a.p0]});
-  return {v:2,started:Date.now(),turn:0,first:0,round:1,phase:"roll",dbl:0,pot:0,didBuyout:false,
+  return {v:2,rules:Object.assign(ALL_ON(),rules||{}),started:Date.now(),turn:0,first:0,round:1,phase:"roll",dbl:0,pot:0,didBuyout:false,
     players:seats.map((s,i)=>({uid:s.uid||null,name:s.name||("Player "+(i+1)),tok:s.tok,cash:1500,pos:0,jail:0,goj:0,loan:0,sh:{set:0,ruby:0,gold:0}})),
     own:{},mk,mg:4+(Math.random()*3|0),mini:null,
     decks:{fortune:shuffle(CARDS.fortune.map((_,i)=>i)),merit:shuffle(CARDS.merit.map((_,i)=>i))},di:{fortune:0,merit:0},
@@ -424,7 +450,7 @@ function L(s,msg){s.log.push(msg);if(s.log.length>60)s.log.splice(0,s.log.length
 function groupOf(g){return B.map((b,i)=>i).filter(i=>B[i].t==="prop"&&B[i].g===g)}
 function ownsAll(s,p,g){return groupOf(g).every(i=>s.own[i]&&s.own[i].o===p)}
 function countType(s,p,t){return B.map((b,i)=>i).filter(i=>B[i].t===t&&s.own[i]&&s.own[i].o===p).length}
-function season(s){let c=SEASONS[0];for(const x of SEASONS)if((s.round||1)>=x.r)c=x;return c}
+function season(s){let c=SEASONS[0];if(!ruleOn(s,"seasons"))return c;for(const x of SEASONS)if((s.round||1)>=x.r)c=x;return c}
 function rentFor(s,i,dice,mult){
   const o=s.own[i];if(!o||o.m)return 0;const b=B[i];let r=0;
   if(b.t==="prop")r=o.h>0?b.rent[o.h]:b.rent[0]*(ownsAll(s,o.o,b.g)?2:1);
@@ -453,20 +479,21 @@ function land(s,p,dice,ev,mult){
     if(o.o===p||o.m)return;
     const r=rentFor(s,i,dice,mult);pay(s,p,o.o,r);
     ev.msgs.push(`${pl.name} paid ${money(r)} to ${s.players[o.o].name} at ${b.name}`);L(s,`${pl.name} paid ${money(r)} rent at ${b.name}.`);ev.pay=1;return}
-  if(b.t==="tax"){pay(s,p,null,b.amt);s.pot+=b.amt;ev.msgs.push(`${pl.name}: ${b.name}, −${money(b.amt)} into the festival pot`);L(s,`${pl.name} paid ${money(b.amt)} (${b.name}).`);ev.pay=1;return}
-  if(b.t==="park"){if(s.pot>0){pl.cash+=s.pot;ev.msgs.push(`💦 ${pl.name} splashed out the festival pot: +${money(s.pot)}`);L(s,`${pl.name} collected the Water Festival pot of ${money(s.pot)}.`);s.pot=0;ev.coin=1}return}
+  if(b.t==="tax"){pay(s,p,null,b.amt);toPot(s,b.amt);ev.msgs.push(`${pl.name}: ${b.name}, −${money(b.amt)}${ruleOn(s,"pot")?" into the festival pot":""}`);L(s,`${pl.name} paid ${money(b.amt)} (${b.name}).`);ev.pay=1;return}
+  if(b.t==="park"){if(ruleOn(s,"pot")&&s.pot>0){pl.cash+=s.pot;ev.msgs.push(`💦 ${pl.name} splashed out the festival pot: +${money(s.pot)}`);L(s,`${pl.name} collected the Water Festival pot of ${money(s.pot)}.`);s.pot=0;ev.coin=1}return}
   if(b.t==="gojail"){toJail(s,p,ev);return}
   if(b.t==="fortune"||b.t==="merit"){drawCard(s,p,b.t,dice,ev);return}
 }
 function drawCard(s,p,deck,dice,ev){
-  const idx=s.decks[deck][s.di[deck]%s.decks[deck].length];s.di[deck]++;
+  let idx=s.decks[deck][s.di[deck]%s.decks[deck].length];s.di[deck]++;
+  while(!ruleOn(s,"lang")&&CARDS[deck][idx].challenge){idx=s.decks[deck][s.di[deck]%s.decks[deck].length];s.di[deck]++}
   const c=CARDS[deck][idx],pl=s.players[p],other=1-p;
   ev.card={deck,idx};L(s,`${pl.name} drew: ${c.x}`);
-  if(c.cash){pl.cash+=c.cash;if(c.cash<0)s.pot+=-c.cash}
+  if(c.cash){pl.cash+=c.cash;if(c.cash<0)toPot(s,-c.cash)}
   if(c.payOther)pay(s,p,other,c.payOther);
   if(c.getOther)pay(s,other,p,c.getOther);
   if(c.goj)pl.goj++;
-  if(c.repairs){let n=0;for(const k in s.own){const o=s.own[k];if(o.o===p&&o.h)n+=o.h===5?c.repairs[1]:o.h*c.repairs[0]}pl.cash-=n;s.pot+=n;if(n)ev.msgs.push(`${pl.name} paid ${money(n)} for repairs`)}
+  if(c.repairs){let n=0;for(const k in s.own){const o=s.own[k];if(o.o===p&&o.h)n+=o.h===5?c.repairs[1]:o.h*c.repairs[0]}pl.cash-=n;toPot(s,n);if(n)ev.msgs.push(`${pl.name} paid ${money(n)} for repairs`)}
   if(c.jail){toJail(s,p,ev);return}
   if(c.challenge){s.challenge={p,q:Math.random()*CHALLENGES.length|0};s.phase="challenge";return}
   if(c.back){pl.pos=(pl.pos-c.back+40)%40;ev.steps.push({jump:pl.pos});land(s,p,dice,ev);return}
@@ -485,10 +512,11 @@ function doRoll(s){
   if(pl.jail){
     if(dbl){pl.jail=0;s.dbl=0;L(s,`${pl.name} rolled doubles and left Visa Run.`);walk(s,p,tot,ev);land(s,p,tot,ev);s.ev=ev;if(s.phase!=="buy"&&s.phase!=="challenge")s.phase="end";return}
     pl.jail++;
-    if(pl.jail>3){pay(s,p,null,50);s.pot+=50;pl.jail=0;L(s,`${pl.name} paid ฿50 and left Visa Run after three tries.`);walk(s,p,tot,ev);land(s,p,tot,ev);s.ev=ev;if(s.phase!=="buy"&&s.phase!=="challenge")s.phase="end";return}
+    if(pl.jail>3){pay(s,p,null,50);toPot(s,50);pl.jail=0;L(s,`${pl.name} paid ฿50 and left Visa Run after three tries.`);walk(s,p,tot,ev);land(s,p,tot,ev);s.ev=ev;if(s.phase!=="buy"&&s.phase!=="challenge")s.phase="end";return}
     L(s,`${pl.name} rolled ${d[0]}+${d[1]} and stays at Visa Run.`);s.ev=ev;s.phase="end";return}
-  if(dbl){s.dbl++;if(s.dbl>=3){L(s,`${pl.name} rolled doubles three times. Too fast!`);toJail(s,p,ev);s.ev=ev;s.phase="end";return}}else s.dbl=0;
-  L(s,`${pl.name} rolled ${d[0]}+${d[1]}${dbl?" (doubles!)":""}.`);
+  const again=dbl&&ruleOn(s,"doubles");
+  if(again){s.dbl++;if(s.dbl>=3){L(s,`${pl.name} rolled doubles three times. Too fast!`);toJail(s,p,ev);s.ev=ev;s.phase="end";return}}else s.dbl=0;
+  L(s,`${pl.name} rolled ${d[0]}+${d[1]}${again?" (doubles!)":""}.`);
   s.phase="moving";walk(s,p,tot,ev);land(s,p,tot,ev);s.ev=ev;if(s.phase==="moving")s.phase="x";afterMove(s);
 }
 function doBuy(s,yes){const p=s.turn,pl=s.players[p],i=pl.pos,b=B[i];
@@ -510,15 +538,15 @@ function makeMini(s){
   return m}
 function doEnd(s){
   s.trade=null;s.dbl=0;s.didBuyout=false;s.turn=1-s.turn;s.phase="roll";
-  tickMarket(s);
+  if(ruleOn(s,"market"))tickMarket(s);
   if(s.turn===s.first){const before=season(s);s.round=(s.round||1)+1;const now=season(s);
     if(now!==before&&now.n!==before.n)L(s,`${now.ic} ${now.n} begins: all rents ×${now.m}.`)}
   L(s,`${s.players[s.turn].name}'s turn.`);
   s.mg=(s.mg==null?6:s.mg)-1;
-  if(s.mg<=0){s.mg=5+(Math.random()*4|0);s.mini=makeMini(s);s.phase="mini";L(s,`🎪 Festival time! ${s.players[s.turn].name} plays ${MINIS[s.mini.kind].n}.`)}
+  if(ruleOn(s,"minis")&&s.mg<=0){s.mg=5+(Math.random()*4|0);s.mini=makeMini(s);s.phase="mini";L(s,`🎪 Festival time! ${s.players[s.turn].name} plays ${MINIS[s.mini.kind].n}.`)}
 }
 function doMini(s,amt,txt){const pl=s.players[s.turn];pl.cash+=amt;L(s,`${pl.name} ${txt}${amt?` and won ${money(amt)}`:""}.`);s.mini=null;s.phase="roll"}
-function doJailPay(s){const pl=s.players[s.turn];pay(s,s.turn,null,50);s.pot+=50;pl.jail=0;L(s,`${pl.name} paid ฿50 to leave Visa Run.`)}
+function doJailPay(s){const pl=s.players[s.turn];pay(s,s.turn,null,50);toPot(s,50);pl.jail=0;L(s,`${pl.name} paid ฿50 to leave Visa Run.`)}
 function doJailCard(s){const pl=s.players[s.turn];pl.goj--;pl.jail=0;L(s,`${pl.name} used a Get Out of Visa Run card.`)}
 function canBuild(s,p,i){const b=B[i],o=s.own[i];if(b.t!=="prop"||!o||o.o!==p||o.m||o.h>=5)return false;if(!ownsAll(s,p,b.g))return false;
   const gs=groupOf(b.g);if(gs.some(k=>s.own[k].m))return false;return o.h<=Math.min(...gs.map(k=>s.own[k].h))&&s.players[p].cash>=G[b.g].h}
@@ -544,13 +572,13 @@ function buyoutable(s,p){return Object.keys(s.own).map(Number).filter(i=>{const 
   if(b.t==="prop")return groupOf(b.g).some(k=>s.own[k]&&s.own[k].o===p)&&!groupOf(b.g).some(k=>s.own[k]&&s.own[k].h);
   return B.some((x,k)=>x.t===b.t&&s.own[k]&&s.own[k].o===p)}).sort((a,b)=>a-b)}
 function doBuyout(s,i){const p=s.turn,pl=s.players[p],o=s.own[i],price=buyoutPrice(i);
-  if(s.didBuyout||!buyoutable(s,p).includes(i)||pl.cash<price)return;
+  if(!ruleOn(s,"buyout")||s.didBuyout||!buyoutable(s,p).includes(i)||pl.cash<price)return;
   const from=o.o;pay(s,p,from,price);o.o=p;s.didBuyout=true;
   L(s,`💥 ${pl.name} bought out ${B[i].name} from ${s.players[from].name} for ${money(price)}.`)}
 function loanLimit(s,p){let v=500;for(const k in s.own){const o=s.own[k];if(o.o===p&&!o.m)v+=B[k].price/2}return Math.floor(v/100)*100}
-function doLoan(s,amt){const pl=s.players[s.turn];amt=Math.min(amt,loanLimit(s,s.turn)-(pl.loan||0));if(amt<=0)return;pl.loan=(pl.loan||0)+amt;pl.cash+=amt;L(s,`🏦 ${pl.name} borrowed ${money(amt)} from the bank.`)}
+function doLoan(s,amt){if(!ruleOn(s,"loans"))return;const pl=s.players[s.turn];amt=Math.min(amt,loanLimit(s,s.turn)-(pl.loan||0));if(amt<=0)return;pl.loan=(pl.loan||0)+amt;pl.cash+=amt;L(s,`🏦 ${pl.name} borrowed ${money(amt)} from the bank.`)}
 function doRepay(s,amt){const pl=s.players[s.turn];amt=Math.min(amt,pl.loan||0,Math.max(0,pl.cash));if(amt<=0)return;pl.loan-=amt;pl.cash-=amt;L(s,`🏦 ${pl.name} repaid ${money(amt)}.`)}
-function doStock(s,k,n){const pl=s.players[s.turn],a=ASSETS.find(x=>x.k===k),pr=s.mk[k].p;
+function doStock(s,k,n){if(!ruleOn(s,"market"))return;const pl=s.players[s.turn],a=ASSETS.find(x=>x.k===k),pr=s.mk[k].p;
   if(n>0){n=Math.min(n,Math.floor(pl.cash/pr));if(n<=0)return;pl.cash-=n*pr;pl.sh[k]=(pl.sh[k]||0)+n;L(s,`${a.ic} ${pl.name} bought ${n} × ${a.name} at ${money(pr)}.`)}
   else{n=Math.min(-n,pl.sh[k]||0);if(n<=0)return;const got=Math.floor(n*pr*(1-SELL_FEE));pl.sh[k]-=n;pl.cash+=got;L(s,`${a.ic} ${pl.name} sold ${n} × ${a.name} for ${money(got)}.`)}}
 function doBankrupt(s,p){s.winner=1-p;s.phase="over";L(s,`${s.players[p].name} is out of baht. ${s.players[1-p].name} rules the Golden Land!`)}
@@ -690,7 +718,7 @@ function renderCenter(){
   const {status,acts}=turnInfo(),se=season(S);
   const d=animating?prevDice:(S.ev.dice||prevDice);
   c.innerHTML=`<div class="logo"><h1>Golden Land</h1><div class="sub">Thailand · Myanmar</div><div class="scripts"><span class="mm">ရွှေပြည်</span> · <span class="th">แผ่นดินทอง</span></div></div>
-   <div class="season">${se.ic} ${se.n} · round ${S.round||1}${se.m>1?` · rent ×${se.m}`:""}</div>
+   <div class="season">${ruleOn(S,"seasons")?`${se.ic} ${se.n} · `:""}round ${S.round||1}${se.m>1?` · rent ×${se.m}`:""}</div>
    <div class="dice">${diceHTML(d)}</div><div class="status">${status}</div><div class="actions">${acts}</div>
    ${S.pot?`<div class="status" style="font-size:clamp(9px,1.5cqw,14px);opacity:.85">💦 Festival pot: ${money(S.pot)}</div>`:""}`;
   c.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>act(b.dataset.a));
@@ -742,11 +770,12 @@ function buildPane(p,on){
     gs.forEach(g=>{const all=groupOf(g),have=all.filter(i=>S.own[i]&&S.own[i].o===p).length;
       const missing=all.filter(i=>!(S.own[i]&&S.own[i].o===p)).map(i=>esc(B[i].name)+(S.own[i]?` (${esc(S.players[S.own[i].o].name)})`:" (free)")).join(", ");
       h+=`<div class="item"><span class="sw" style="background:${G[g].c}"></span><div style="min-width:0"><div class="nm2">${G[g].n} ${have}/${all.length}</div><div class="sub2" style="white-space:normal">Missing: ${missing}</div></div><div></div></div>`});
-    if(gs.length)h+=`<p class="note">Your partner won't sell? Use a <b>Buyout</b> in the Deals tab.</p>`}
+    if(gs.length&&ruleOn(S,"buyout"))h+=`<p class="note">Your partner won't sell? Use a <b>Buyout</b> in the Deals tab.</p>`}
   return h}
 function dealsPane(p,on){
   const bo=buyoutable(S,p),cash=S.players[p].cash;
   let h=`<div class="row"><button class="btn sm" data-a="trade" ${on&&!S.trade&&cash>=0?"":"disabled"}>🤝 Propose a trade</button></div>`;
+  if(!ruleOn(S,"buyout"))return h+`<p class="note">Offer places and cash to your partner. They can accept or decline.</p>`;
   h+=`<p class="note"><b>Buyout:</b> if you already own part of a set, you can force-buy another piece of it from your partner for <b>${BUYOUT_X}× its price</b>. They get the money and can't refuse. One buyout per turn; places in a group with huts are protected.</p>`;
   if(!bo.length)h+=`<p class="note">No buyouts available right now.</p>`;
   bo.forEach(i=>{const pr=buyoutPrice(i);h+=`<div class="item"><span class="sw" style="background:${sw(i)}"></span><div style="min-width:0"><div class="nm2">${esc(B[i].name)}</div><div class="sub2">from ${esc(S.players[S.own[i].o].name)}${S.own[i].m?" · mortgaged":""}</div></div>
@@ -755,7 +784,7 @@ function dealsPane(p,on){
   return h}
 function bankPane(p,on){
   const pl=S.players[p],lim=loanLimit(S,p),loan=pl.loan||0,room=lim-loan;
-  let h=`<div class="item"><span class="sw" style="background:var(--gold)"></span><div style="min-width:0"><div class="nm2">🏦 Bank loan: ${money(loan)}</div><div class="sub2" style="white-space:normal">Limit ${money(lim)} · 10% interest each time you pass Mingalaba</div></div><div></div></div>
+  let h=!ruleOn(S,"loans")?`<p class="note">Bank loans are off in this game. You can still mortgage places for half their price.</p>`:`<div class="item"><span class="sw" style="background:var(--gold)"></span><div style="min-width:0"><div class="nm2">🏦 Bank loan: ${money(loan)}</div><div class="sub2" style="white-space:normal">Limit ${money(lim)} · 10% interest each time you pass Mingalaba</div></div><div></div></div>
    <div class="row"><button class="btn sm" data-a="loan" data-arg="100" ${on&&room>=100?"":"disabled"}>Borrow ฿100</button><button class="btn sm" data-a="loan" data-arg="500" ${on&&room>=100?"":"disabled"}>Borrow ฿500</button>
    <button class="btn sm ghost" data-a="repay" data-arg="100" ${on&&loan&&pl.cash>0?"":"disabled"}>Repay ฿100</button><button class="btn sm ghost" data-a="repay" data-arg="${loan}" ${on&&loan&&pl.cash>=loan?"":"disabled"}>Repay all</button></div>
    <p class="note">Borrow to build resorts before your partner does. The limit grows with the places you own.</p>`;
@@ -776,8 +805,9 @@ function renderPanelOnly(){
   const pn=$("#panel");if(!pn||!S)return;
   const {status,acts}=turnInfo();
   const seats=mySeats(),p=isMyTurn()?S.turn:(seats.length?seats[0]:S.turn),on=canManage()&&p===S.turn;
-  const badges={build:on?B.filter((b,i)=>canBuild(S,p,i)).length:0,deals:on&&!S.didBuyout?buyoutable(S,p).filter(i=>S.players[p].cash>=buyoutPrice(i)).length:0,bank:0,market:0};
-  const tabs=[["build","Build"],["deals","Deals"],["bank","Bank"],["market","Market"]];
+  const badges={build:on?B.filter((b,i)=>canBuild(S,p,i)).length:0,deals:on&&!S.didBuyout&&ruleOn(S,"buyout")?buyoutable(S,p).filter(i=>S.players[p].cash>=buyoutPrice(i)).length:0,bank:0,market:0};
+  const tabs=[["build","Build"],["deals","Deals"],["bank","Bank"],["market","Market"]].filter(([k])=>k!=="market"||ruleOn(S,"market"));
+  if(!tabs.some(([k])=>k===tab))tab="build";
   const pane={build:buildPane,deals:dealsPane,bank:bankPane,market:marketPane}[tab](p,on);
   const who=localMode||seats.length?"":`<p class="note">You are watching. Take a seat on the start screen to play.</p>`;
   const pls=S.players.map((pl,k)=>{
@@ -859,7 +889,7 @@ function deedHTML(i){
     body=`<table class="rent">${rows.map((r,k)=>`<tr class="${k===curRow?"cur":""}"><td>${r[0]}</td><td>${money(sm===1?r[1]:Math.round(r[1]*sm))}</td></tr>`).join("")}<tr><td>Hut / resort cost</td><td>${money(G[b.g].h)} each</td></tr><tr><td>Mortgage value</td><td>${money(b.price/2)}</td></tr></table>${sm>1?`<p class="small" style="color:#5b4433;margin:0">Rents shown include the ${season(S).n.toLowerCase()} ×${sm}.</p>`:""}`}
   else if(b.t==="rail")body=`<table class="rent"><tr><td>1 transport owned</td><td>฿25</td></tr><tr><td>2 owned</td><td>฿50</td></tr><tr><td>3 owned</td><td>฿100</td></tr><tr><td>All 4 owned</td><td>฿200</td></tr></table>`;
   else if(b.t==="util")body=`<table class="rent"><tr><td>1 utility owned</td><td>4 × dice</td></tr><tr><td>Both owned</td><td>10 × dice</td></tr></table>`;
-  else body=`<p class="blurb">${{go:"Every time you pass, collect ฿200. Mingalaba (Burmese) and sawasdee (Thai) both mean hello.",jail:"Just visiting the Thai–Myanmar Friendship Bridge between Mae Sot and Myawaddy. If you were sent here, roll doubles, pay ฿50 or use a card to leave.",park:"Songkran in Thailand and Thingyan in Myanmar: the same April water festival. All taxes and fees land in the pot, and whoever stops here takes it all.",gojail:"You overstayed your visa. Go directly to Visa Run, do not pass Mingalaba.",fortune:"Shake the bamboo cup until one stick falls out. Read your fortune.",merit:"Make merit. Sometimes the merit makes money back.",tax:"Pay into the Water Festival pot."}[b.t]}</p>`;
+  else body=`<p class="blurb">${{go:"Every time you pass, collect ฿200. Mingalaba (Burmese) and sawasdee (Thai) both mean hello.",jail:"Just visiting the Thai–Myanmar Friendship Bridge between Mae Sot and Myawaddy. If you were sent here, roll doubles, pay ฿50 or use a card to leave.",park:"Songkran in Thailand and Thingyan in Myanmar: the same April water festival. "+(ruleOn(S,"pot")?"All taxes and fees land in the pot, and whoever stops here takes it all.":"A free rest stop in this game."),gojail:"You overstayed your visa. Go directly to Visa Run, do not pass Mingalaba.",fortune:"Shake the bamboo cup until one stick falls out. Read your fortune.",merit:"Make merit. Sometimes the merit makes money back.",tax:ruleOn(S,"pot")?"Pay into the Water Festival pot.":"Pay the bank."}[b.t]}</p>`;
   let owner=o?`<div class="small" style="color:#5b4433">Owned by <b>${esc(S.players[o.o].name)}</b>${o.m?" · mortgaged":""}${o.h?` · ${o.h===5?"resort":o.h+" hut"+(o.h>1?"s":"")}`:""}</div>`:(buyable(i)?`<div class="small" style="color:#5b4433">Not owned yet · price ${money(b.price)}</div>`:"");
   let btns="";
   const p=S.turn,myTurn=isMyTurn()&&!animating;
@@ -873,7 +903,7 @@ function deedHTML(i){
     if(o.m)btns+=`<button class="btn ghost" data-s="unmort" data-i="${i}" ${canUnmortgage(S,p,i)?"":"disabled"}>Pay off (${money(Math.ceil(b.price*.55))})</button>`;
     btns+=`<button class="btn ghost" data-s="close">Close</button>`;
     if(b.t==="prop"&&!ownsAll(S,p,b.g))owner+=`<div class="small" style="color:#5b4433">Own the whole ${G[b.g].n} group to build huts.</div>`}
-  else if(canManage()&&o&&o.o!==p&&buyoutable(S,p).includes(i)){
+  else if(canManage()&&o&&o.o!==p&&ruleOn(S,"buyout")&&buyoutable(S,p).includes(i)){
     btns=`<button class="btn ghost" data-s="close">Close</button><button class="btn" data-s="buyout" data-i="${i}" ${!S.didBuyout&&S.players[p].cash>=buyoutPrice(i)?"":"disabled"}>Buy out for ${money(buyoutPrice(i))}</button>`}
   else btns=`<button class="btn ghost" data-s="close">Close</button>`;
   return `<div class="modal"><div class="deed-h" style="background:${head}"><div class="k">${k||"Board square"}</div><h3>${b.ic||""} ${esc(b.name)}</h3>${b.lc?`<div class="lc ${b.c}">${b.lc}</div>`:""}</div>
@@ -925,21 +955,23 @@ function sheetHTML(sh){
   if(sh.k==="rules")return rulesHTML();
   return "";
 }
-function rulesHTML(){return `<div class="modal dark"><div class="deed-b">
+function rulesHTML(){
+  const hr=HOUSE.map(h=>`<li class="${ruleOn(S,h.k)?"":"rl-off"}"><b>${h.n}</b>: ${h.x}</li>`).join("");
+  return `<div class="modal dark"><div class="deed-b">
   <h2 style="font-family:var(--display);font-weight:400;color:var(--gold);margin:0">How to play</h2>
   <p class="blurb" style="margin:0">Classic property trading, moved to Thailand and Myanmar. Everything you can do on your turn is in the panel on the right (below the board on a phone).</p>
   <ul class="blurb" style="margin:0;padding-left:18px;display:grid;gap:4px">
    <li>Everyone starts with ฿1,500. Passing <b>Mingalaba!</b> pays ฿200.</li>
    <li><b>Build</b> tab: own a whole colour group, then add up to 4 huts and a resort, evenly. Buildable squares glow on the board.</li>
-   <li><b>Deals</b> tab: trade, or force a <b>buyout</b> of a partner's place for 2× its price if you already own part of that set. One per turn.</li>
-   <li><b>Bank</b> tab: borrow up to ฿500 plus half of your places' value, 10% interest every time you pass Mingalaba. Mortgage places here too.</li>
-   <li><b>Market</b> tab: SET stocks, Mogok rubies and gold. Prices move after every turn and on news. SET pays a 4% dividend at Mingalaba.</li>
-   <li><b>Seasons</b>: rents rise to ×1.25 from round 7, ×1.5 from round 13 and ×2 from round 19.</li>
-   <li><b>Festival mini-games</b> come up every 5–8 turns: place quiz, chinlone kicks or the ruby mine.</li>
-   <li><b>Fortune Sticks</b> and <b>Merit Box</b> are the card decks. <b>Language moments</b> pay you both ฿50.</li>
-   <li>Taxes fill the <b>Water Festival</b> pot. <b>Overstay!</b> sends you on a Visa Run: roll doubles, pay ฿50 or use a card.</li>
+   <li><b>Deals</b> tab: trade places and cash with your partner. <b>Bank</b> tab: mortgage places for half their price.</li>
+   <li><b>Fortune Sticks</b> and <b>Merit Box</b> are the card decks.</li>
+   <li><b>Overstay!</b> sends you on a Visa Run: roll doubles, pay ฿50 or use a card.</li>
    <li>Out of money and nothing left to sell: game over. Or press <b>Finish &amp; count</b> to compare net worth.</li>
-  </ul><div class="mbtns"><button class="btn" data-s="close">Got it</button></div></div></div>`}
+  </ul>
+  <div class="eyebrow">House rules in this game</div>
+  <ul class="blurb" style="margin:0;padding-left:18px;display:grid;gap:4px">${hr}</ul>
+  <p class="small" style="margin:0">Crossed-out rules are switched off. Choose them on the start screen before a new game.</p>
+  <div class="mbtns"><button class="btn" data-s="close">Got it</button></div></div></div>`}
 function sheetAct(s,el){
   const i=el.dataset.i!=null?+el.dataset.i:null;
   if(s==="close"){const wasCard=openSheet&&openSheet.k==="card";closeSheet();
@@ -975,6 +1007,17 @@ function toast(msg){const w=$("#toasts");const t=document.createElement("div");t
 
 /* ================= SETUP / LOBBY ================= */
 let localSeats=[{name:"",tok:"🦚"},{name:"",tok:"🪆"}];
+let localRules=(()=>{try{return Object.assign(ALL_ON(),JSON.parse(store.get("gl-rules")||"{}"))}catch(e){return ALL_ON()}})();
+function setupRules(){return window.online&&!localMode?Object.assign(ALL_ON(),lobby.rules||{}):localRules}
+function rulesSetupHTML(){const r=setupRules();
+  return `<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">House rules</h2>
+    <div class="row"><button class="btn ghost sm" data-preset="classic">Classic only</button><button class="btn ghost sm" data-preset="all">Everything on</button></div></div>
+    <p class="note" style="margin:0 0 10px">Pick what's in this game. These are fixed once the game starts${window.online&&!localMode?", and both of you see the same choices":""}.</p>
+    <div class="hr-list">${HOUSE.map(h=>`<label class="hr"><input type="checkbox" id="hr-${h.k}" data-rule="${h.k}" ${r[h.k]?"checked":""}><div><b>${h.n}</b><span>${h.x}</span></div></label>`).join("")}</div></div>`}
+function setRules(patch){
+  if(window.online&&!localMode){lobby.rules=Object.assign(setupRules(),patch);render();
+    const ref=db.doc("game/lobby");ref.get().then(sn=>sn.exists?ref.update({rules:patch}):ref.set({seats:{},rules:patch})).catch(e=>toast("Couldn't save the rules ("+(e.code||e.message)+")."));}
+  else{Object.assign(localRules,patch);store.set("gl-rules",JSON.stringify(localRules));render()}}
 const draft={};
 function seatInfo(k){return window.online&&!localMode?(lobby.seats[k]||null):localSeats[k]}
 function setupView(){
@@ -999,12 +1042,13 @@ function setupView(){
    <div class="hero"><h1>Golden Land</h1><div class="sub">A property game of Thailand &amp; Myanmar for two</div><div class="scripts"><span class="mm">မင်္ဂလာပါ</span> · <span class="th">สวัสดี</span> · Привет</div></div>
    ${window.online?`<div class="mode"><button class="btn ${localMode?"ghost":""}" data-mode="online">Each on own phone</button><button class="btn ${localMode?"":"ghost"}" data-mode="local">Both on this device</button></div>`:`<p class="small" style="text-align:center">Online play needs the claude.ai version of this page. Here you play together on this one device.</p>`}
    <div class="seats">${seat(0)}${seat(1)}</div>
+   ${rulesSetupHTML()}
    <div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" data-start ${canStart?"":"disabled"} style="font-size:17px;padding:.8em 2em">Start the journey</button>
    ${!online&&hasLocal?`<button class="btn ghost" data-resume style="font-size:17px;padding:.8em 2em">Resume saved game</button>`:""}</div>
    ${online&&!bothOnline?`<p class="small" style="text-align:center">Send this page to your partner. When you have both taken a seat, either of you can start.</p>`:""}
    <div class="how">
      <div class="card"><h2>22 real places</h2><p>Eleven in Thailand, eleven in Myanmar, from Hpa-An to the Grand Palace, with names in Thai and Burmese script.</p></div>
-     <div class="card"><h2>More than rent</h2><p>Buyouts, bank loans, a market of SET stocks, rubies and gold, and seasons that push rents up as the game goes on.</p></div>
+     <div class="card"><h2>Your rules</h2><p>Buyouts, bank loans, a market, rising seasons and mini-games. Switch each one on or off above before you start.</p></div>
      <div class="card"><h2>Made for two</h2><p>Language moments, festival mini-games, live reactions. Open the same link on two phones, or share one screen.</p></div>
    </div></div>`}
 function bindSetup(){
@@ -1022,6 +1066,8 @@ function bindSetup(){
   root.querySelectorAll("[data-leave]").forEach(b=>b.onclick=()=>saveSeat(+b.dataset.leave,null));
   root.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{localMode=b.dataset.mode==="local";render()});
   const rs=root.querySelector("[data-resume]");if(rs)rs.onclick=()=>{if(loadLocal()){localMode=true;render()}};
+  root.querySelectorAll("[data-rule]").forEach(c=>c.onchange=()=>setRules({[c.dataset.rule]:c.checked}));
+  root.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>setRules(b.dataset.preset==="all"?ALL_ON():Object.fromEntries(HOUSE.map(h=>[h.k,h.k==="doubles"]))));
   const st=root.querySelector("[data-start]");if(st)st.onclick=startGame;
 }
 async function saveSeat(k,patch){
@@ -1035,11 +1081,11 @@ function startGame(){
   if(localMode||!window.online){
     [0,1].forEach(k=>{const el=$("#nm"+k);if(el)localSeats[k].name=el.value.trim()});
     if(localSeats[0].tok===localSeats[1].tok){toast("Pick two different tokens.");return}
-    localMode=true;S=newGame(localSeats.map((s,k)=>({name:s.name||("Player "+(k+1)),tok:s.tok})));seen=0;store.set(LOCAL_KEY,JSON.stringify(S));sfx.gong();render();return}
+    localMode=true;S=newGame(localSeats.map((s,k)=>({name:s.name||("Player "+(k+1)),tok:s.tok})),localRules);seen=0;store.set(LOCAL_KEY,JSON.stringify(S));sfx.gong();render();return}
   const seats=[0,1].map(k=>lobby.seats[k]);
   if(!seats[0]||!seats[1]){toast("Both seats need a player.");return}
   if(seats[0].tok===seats[1].tok){toast("Pick two different tokens.");return}
-  const s=newGame(seats);s.turn=s.first=Math.random()<.5?0:1;L(s,`${s.players[s.turn].name} goes first.`);
+  const s=newGame(seats,setupRules());s.turn=s.first=Math.random()<.5?0:1;L(s,`${s.players[s.turn].name} goes first.`);
   S=s;seen=0;sfx.gong();render();
   db.doc("game/current").set(s).catch(e=>toast("Couldn't start: "+(e.code||e.message)));
 }
