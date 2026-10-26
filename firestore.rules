@@ -1,0 +1,22 @@
+rules_version = '2';
+// Copy into Firebase console → Firestore Database → Rules, then Publish.
+// Every game gets its own top-level collection. Anything not listed here is closed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+
+    // Golden Land: golden-land/<ROOM>/game/{current,lobby,answer} and golden-land/<ROOM>/live/{react,presence}.
+    // Anyone signed in (anonymous auth) who knows the room code can play in that room.
+    match /golden-land/{room}/{section}/{doc} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+                            && room.size() >= 4 && room.size() <= 8
+                            && section in ['game', 'live']
+                            && request.resource.data.size() < 200;
+      allow delete: if signedIn();
+    }
+
+    // Next online game: add a block like the one above with its own collection name.
+  }
+}

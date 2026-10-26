@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light dark}</style>
+<title>Толмач</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700&family=Literata:opsz,wght@7..72,500;7..72,700&family=Noto+Sans+Myanmar:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F2EEE4;
+  --surface:#FBF8F1;
+  --surface-2:#EAE4D6;
+  --ink:#20221D;
+  --muted:#6F6A5C;
+  --line:#D6CFBE;
+  --ru:#2E5E6B;
+  --my:#9C3B2E;
+  --gold:#A8801F;
+  --good:#3F7245;
+  --bad:#A33E2E;
+  --quiet:#9A9484;
+  --shadow:0 1px 2px rgba(32,34,29,.07), 0 8px 24px -16px rgba(32,34,29,.35);
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15181A;
+    --surface:#1E2224;
+    --surface-2:#282D2F;
+    --ink:#ECE6D9;
+    --muted:#9A968A;
+    --line:#343A3C;
+    --ru:#79B0BE;
+    --my:#DE8370;
+    --gold:#D6AC54;
+    --good:#7BB07F;
+    --bad:#E08573;
+    --quiet:#5E5F5A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15181A; --surface:#1E2224; --surface-2:#282D2F; --ink:#ECE6D9;
+  --muted:#9A968A; --line:#343A3C; --ru:#79B0BE; --my:#DE8370; --gold:#D6AC54;
+  --good:#7BB07F; --bad:#E08573; --quiet:#5E5F5A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Commissioner","Noto Sans Myanmar",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mm{font-family:"Noto Sans Myanmar","Padauk",sans-serif; line-height:2.05;}
+button{font:inherit; color:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--gold); outline-offset:2px; border-radius:4px}
+
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:18px 40px}
+
+/* ---------- header ---------- */
+header.bar{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:18px}
+.home{font-size:13px; color:var(--muted); text-decoration:none; border:1px solid var(--line); border-radius:99px; padding:3px 10px; align-self:center}
+.home:hover{color:var(--ink); border-color:var(--ink)}
+.logo{font-family:"Literata",Georgia,serif; font-weight:700; font-size:22px; letter-spacing:-.01em}
+.logo .sep{color:var(--quiet); font-weight:500; margin-inline:7px}
+.logo .mm{font-size:19px}
+.bar .spacer{flex:1}
+.stages{display:flex; gap:6px; align-items:center}
+.stage-chip{
+  font-size:11px; letter-spacing:.07em; text-transform:uppercase; font-weight:600;
+  padding:4px 9px; border-radius:99px; border:1px solid var(--line); color:var(--muted);
+  background:transparent;
+}
+.stage-chip[data-on="1"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.stage-chip[data-done="1"]{color:var(--good); border-color:var(--good)}
+.score{font-variant-numeric:tabular-nums; font-weight:700; font-size:18px}
+.score small{font-weight:500; color:var(--muted); font-size:12px; letter-spacing:.06em; text-transform:uppercase; margin-right:6px}
+
+/* ---------- intro ---------- */
+.intro{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:26px 24px; box-shadow:var(--shadow)}
+.intro h2{font-family:"Literata",Georgia,serif; font-size:26px; margin:0 0 14px; text-wrap:balance; font-weight:700}
+.intro p{max-width:62ch; margin:0 0 12px; color:var(--ink)}
+.intro p.mm{max-width:48ch}
+.rule-cols{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin:20px 0 4px}
+.rule-cols > div{border-top:2px solid; padding-top:12px}
+.rule-cols > div:first-child{border-color:var(--ru)}
+.rule-cols > div:last-child{border-color:var(--my)}
+.rule-h{font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; margin-bottom:8px}
+.rule-cols > div:first-child .rule-h{color:var(--ru)}
+.rule-cols > div:last-child .rule-h{color:var(--my)}
+.actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; align-items:center}
+
+.btn{
+  border:1px solid var(--ink); background:var(--ink); color:var(--bg);
+  padding:10px 20px; border-radius:var(--r); font-weight:600; font-size:15px;
+}
+.btn:hover{opacity:.88}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn.ghost:hover{background:var(--surface-2); opacity:1}
+.btn[disabled]{opacity:.4; cursor:default}
+
+/* ---------- play layout ---------- */
+.play{display:grid; grid-template-columns:1fr minmax(300px,auto) 1fr; gap:18px; align-items:start}
+
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:18px 18px 16px; min-height:250px; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; gap:12px;
+}
+.panel[data-active="0"]{background:transparent; box-shadow:none; border-style:dashed}
+.p-head{display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:700}
+.panel.ru .p-head{color:var(--ru)}
+.panel.my .p-head{color:var(--my)}
+.p-head .dot{width:7px; height:7px; border-radius:99px; background:currentColor; flex:none}
+.panel[data-active="0"] .p-head{color:var(--quiet)}
+
+.read{
+  font-size:clamp(21px,2.4vw,27px); font-weight:600; line-height:1.34; text-wrap:balance;
+  letter-spacing:-.005em;
+}
+.panel.my .read{font-size:clamp(20px,2.2vw,25px); font-weight:500}
+.gloss{color:var(--muted); font-size:14px; padding-top:10px; border-top:1px solid var(--line)}
+.panel.my .gloss{font-size:15px}
+.hint{color:var(--quiet); font-size:12.5px; margin-top:auto}
+.panel.my .hint{font-size:13.5px}
+.listen{color:var(--quiet); font-size:17px; font-weight:500; margin:auto 0; text-align:center; padding:18px 0}
+.panel.my .listen{font-size:19px}
+.legend{font-size:11.5px; color:var(--quiet); line-height:1.45}
+
+.log{display:flex; flex-direction:column; gap:9px; margin-top:4px; padding-top:12px; border-top:1px solid var(--line)}
+.log-item{font-size:14px; line-height:1.4}
+.log-item .g{color:var(--quiet); font-size:12.5px}
+.panel.my .log-item{font-size:15px}
+.panel.my .log-item .g{font-size:13.5px}
+
+/* ---------- board ---------- */
+.board-col{display:flex; flex-direction:column; gap:14px; align-items:center}
+.grid{
+  display:grid; grid-template-columns:auto repeat(3,1fr); gap:6px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:12px; box-shadow:var(--shadow);
+}
+.hdr{
+  display:flex; align-items:center; justify-content:center; gap:4px;
+  font-size:11px; font-weight:700; color:var(--quiet); font-variant-numeric:tabular-nums;
+  min-width:26px;
+}
+.hdr .mm{font-size:13px; line-height:1}
+.hdr.corner{font-size:0}
+.cell{
+  width:clamp(72px,11vw,98px); aspect-ratio:1;
+  border:1px solid var(--line); border-radius:8px; background:var(--surface-2);
+  display:flex; align-items:center; justify-content:center; padding:0;
+  transition:border-color .12s, transform .08s;
+}
+.cell:hover:not([disabled]){border-color:var(--gold)}
+.cell[disabled]{cursor:default}
+.cell.hit{border-color:var(--good); box-shadow:inset 0 0 0 2px var(--good)}
+.cell.miss{border-color:var(--bad); box-shadow:inset 0 0 0 2px var(--bad); animation:nudge .32s}
+@keyframes nudge{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+@media (prefers-reduced-motion:reduce){.cell.miss{animation:none}}
+.cell svg,.chip svg{color:var(--muted)}
+.cell svg{width:64%; height:64%; display:block}
+
+.palette{
+  display:flex; flex-wrap:wrap; gap:7px; justify-content:center; max-width:360px;
+}
+.chip{
+  width:50px; height:50px; border:1px solid var(--line); border-radius:8px;
+  background:var(--surface); display:flex; align-items:center; justify-content:center; padding:0;
+}
+.chip svg{width:60%; height:60%}
+.chip[aria-pressed="true"]{border-color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold)}
+.chip[disabled]{opacity:.3; cursor:default}
+
+.board-msg{min-height:24px; font-size:14px; font-weight:600; text-align:center}
+.board-msg.ok{color:var(--good)}
+.board-msg.no{color:var(--bad)}
+.board-msg .mm{font-weight:500}
+.progress{font-size:12px; color:var(--quiet); letter-spacing:.06em; text-transform:uppercase; font-weight:600; font-variant-numeric:tabular-nums}
+
+/* ---------- vocab ---------- */
+.vocab{margin-top:26px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:20px; box-shadow:var(--shadow)}
+.vocab h3{font-family:"Literata",Georgia,serif; font-size:18px; margin:0 0 14px}
+.vtable{width:100%; border-collapse:collapse; font-size:14px}
+.vtable th{
+  text-align:left; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted); font-weight:700; padding:0 10px 8px 0; border-bottom:1px solid var(--line);
+}
+.vtable td{padding:7px 10px 7px 0; border-bottom:1px solid var(--line); vertical-align:middle}
+.vtable tr:last-child td{border-bottom:none}
+.vtable .cyr{font-weight:600; color:var(--ru)}
+.vtable .mms{font-weight:500; color:var(--my)}
+.vtable .sec{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--quiet); font-weight:700; padding-top:16px}
+.vscroll{overflow-x:auto}
+.miss-tag{color:var(--bad); font-size:12px; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* ---------- end ---------- */
+.result{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:26px 24px; box-shadow:var(--shadow)}
+.result h2{font-family:"Literata",Georgia,serif; font-size:30px; margin:0 0 6px; font-variant-numeric:tabular-nums}
+.result .sub{color:var(--muted); margin:0 0 18px}
+
+@media (max-width:900px){
+  .play{grid-template-columns:1fr}
+  .board-col{order:-1}
+  .panel{min-height:0}
+  .rule-cols{grid-template-columns:1fr; gap:16px}
+  .cell{width:clamp(72px,23vw,98px)}
+}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <a class="home" href="../" aria-label="All PuzzleGekko games">← PuzzleGekko</a>
+    <div class="logo">Толмач<span class="sep">·</span><span class="mm">စကားပြန်</span></div>
+    <div class="spacer"></div>
+    <div class="stages" id="stages" hidden>
+      <span class="stage-chip" data-s="1">Вопросы · မေးခွန်း</span>
+      <span class="stage-chip" data-s="2">Диктовка · ညွှန်ကြားချက်</span>
+      <span class="stage-chip" data-s="3">Задача · ပဟေဠိ</span>
+    </div>
+    <div class="score" id="score" hidden><small>Очки · အမှတ်</small><span id="scoreval">0</span></div>
+  </header>
+
+  <section class="intro" id="intro">
+    <h2>Один экран, два алфавита</h2>
+    <p>Он читает вслух бирманские фразы, записанные кириллицей. Она читает вслух русские фразы, записанные бирманским письмом. Каждый видит только свою половину — чужой алфавит и есть шифр, поэтому прятать экран не нужно.</p>
+    <p>Тот, кто слушает, должен понять сказанное и сделать ход на доске. Произношение будет кривым — это нормально, именно оно и тренируется. Показывать пальцем нельзя.</p>
+
+    <div class="rule-cols">
+      <div>
+        <div class="rule-h">Ему</div>
+        <p>Читай то, что крупно. Мелким шрифтом снизу — что это значит по-русски. Ударение над гласной = высокий тон. Сочетание <b>тх</b> = английское <i>th</i>.</p>
+      </div>
+      <div>
+        <div class="rule-h">သူမအတွက်</div>
+        <p class="mm">စာလုံးကြီးကို အသံထွက်ဖတ်ပါ။ အောက်က စာလုံးသေးက အဓိပ္ပာယ်ပါ။ ရုရှားစကားကို မြန်မာလိုရေးထားတာမို့ အသံက အနီးစပ်ဆုံးပါပဲ။</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="start">Начать · စတင်မယ်</button>
+      <button class="btn ghost" id="toggleVocab">Словарь · ဝေါဟာရ</button>
+    </div>
+  </section>
+
+  <section class="play" id="play" hidden>
+    <div class="panel ru" id="panelRu">
+      <div class="p-head"><span class="dot"></span><span id="ruHead">Он читает</span></div>
+      <div id="ruBody"></div>
+    </div>
+
+    <div class="board-col">
+      <div class="progress" id="progress"></div>
+      <div class="grid" id="grid"></div>
+      <div class="palette" id="palette"></div>
+      <div class="board-msg" id="msg"></div>
+      <button class="btn" id="advance" hidden></button>
+    </div>
+
+    <div class="panel my" id="panelMy">
+      <div class="p-head"><span class="dot"></span><span class="mm" id="myHead">သူမဖတ်သည်</span></div>
+      <div id="myBody"></div>
+    </div>
+  </section>
+
+  <section class="result" id="result" hidden></section>
+
+  <section class="vocab" id="vocab" hidden></section>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. СЛОВАРЬ
+   Русские формы хранятся парой [кириллица, бирманское письмо].
+   Бирманские слова — парой {s: письмо, c: кириллица}.
+   Словарь закрытый, поэтому морфология просто лежит готовой.
+   ============================================================ */
+
+const OBJ = {
+  cat:   {icon:'cat',   my:{s:'ကြောင်', c:'чау́н'}, g:'f',
+          ru:{nom:['кошка','ကော့ရှကာ'], acc:['кошку','ကော့ရှကူ'], gen:['кошки','ကော့ရှကီ']}},
+  fish:  {icon:'fish',  my:{s:'ငါး', c:'нга́'}, g:'f',
+          ru:{nom:['рыба','ရီဗာ'], acc:['рыбу','ရီဗူ'], gen:['рыбы','ရီဗီ']}},
+  house: {icon:'house', my:{s:'အိမ်', c:'эйн'}, g:'m',
+          ru:{nom:['дом','ဒေါမ်'], acc:['дом','ဒေါမ်'], gen:['дома','ဒေါမာ']}},
+  moon:  {icon:'moon',  my:{s:'လ', c:'ла'}, g:'f',
+          ru:{nom:['луна','လူနာ'], acc:['луну','လူနူ'], gen:['луны','လူနီ']}},
+};
+
+const COL = {
+  blue:  {hex:'#3E6EA8', my:{s:'ပြာ', c:'пя'},
+          ru:{f:{nom:['синяя','စီညာယာ'], acc:['синюю','စီညူယူ']},
+              m:{nom:['синий','စီနီ'],   acc:['синий','စီနီ']}}},
+  white: {hex:'#FCFBF6', my:{s:'ဖြူ', c:'пхью́'},
+          ru:{f:{nom:['белая','ဗေလာယာ'], acc:['белую','ဗေလူယူ']},
+              m:{nom:['белый','ဗေလီ'],   acc:['белый','ဗေလီ']}}},
+  green: {hex:'#4E8A5B', my:{s:'စိမ်း', c:'сэ́йн'},
+          ru:{f:{nom:['зелёная','ဇေလျိုနာယာ'], acc:['зелёную','ဇေလျိုနူယူ']},
+              m:{nom:['зелёный','ဇေလျိုနီ'],   acc:['зелёный','ဇေလျိုနီ']}}},
+  pink:  {hex:'#C97A93', my:{s:'ပန်းနု', c:'па́нну'},
+          ru:{f:{nom:['розовая','ရောဇောဗာယာ'], acc:['розовую','ရောဇောဗူယူ']},
+              m:{nom:['розовый','ရောဇောဗီ'],   acc:['розовый','ရောဇောဗီ']}}},
+};
+
+const NUM = [
+  {ru:['один','အဒင်'], my:{s:'၁', c:'тит'}},
+  {ru:['два','ဒွါ'],   my:{s:'၂', c:'хни́т'}},
+  {ru:['три','ထရီ'],   my:{s:'၃', c:'тхо́ун'}},
+];
+
+/* служебные слова */
+const W = {
+  where:['Где','ဂဒေ'], put:['Положи','ပါလာဇီ'], v:['в','ဗ'], ne:['не','နေ'],
+  lineP:['линии','လီနီအီ'], lineN:['линия','လီနီယာ'],
+  colP:['колонке','ကောလံကေ'], colN:['колонка','ကောလံကာ'],
+  above:['выше','ဗီရှေ'], below:['ниже','နီဇေ'],
+  left:['левее','လေဗေယေ'], right:['правее','ပရာဗေယေ'],
+};
+
+const M = {
+  where:['ဘယ်မှာလဲ','бэ хма лэ́'], put:['ထားပါ','тха́ ба'], ko:['ကို','ко'], hma:['မှာ','хма'],
+  row:['အတန်း','атáн'], col:['ကော်လံ','ко́лан'],
+  is:['ရှိတယ်','ши́ дэ'], isnt:['မရှိဘူး','ма ши́ бу'],
+  ga:['က','га'], htet:['ထက်','тхэ́т'],
+  up:['အပေါ်','апо́'], down:['အောက်','ау́к'], lf:['ဘယ်ဘက်','бэ́ бэ́т'], rt:['ညာဘက်','нья́ бэ́т'],
+};
+
+/* ============================================================
+   2. СБОРКА ФРАЗ
+   phrase(fact) -> { ru:{cyr,mm}, my:{s,c} }
+     ru.cyr — русская фраза кириллицей   (подсказка ЕМУ о смысле)
+     ru.mm  — та же фраза бирманским письмом (ЕЙ — читать вслух)
+     my.s   — бирманская фраза родным письмом (ЕЙ — подсказка о смысле)
+     my.c   — та же фраза кириллицей       (ЕМУ — читать вслух)
+   ============================================================ */
+
+function ruSay(parts, end){
+  const cyr = parts.map(p => p[0]).join(' ').replace(/ ([,:])/g, '$1') + (end || '');
+  const mm  = parts.map(p => p[1]).join(' ').replace(/ ([,:])/g, '$1') + (end === '?' ? ' ?' : ' ။');
+  return {cyr, mm};
+}
+function mySay(parts, end){
+  // parts: [burmeseChunk, cyrillicChunk, glue] — glue:true клеит к предыдущему без пробела
+  let s = '', c = [];
+  for (const p of parts){
+    s += (s && !p[2] ? ' ' : '') + p[0];
+    c.push(p[1]);
+  }
+  return {s: s + '။', c: c.join(' ').replace(/ ,/g, ',') + (end || '.')};
+}
+
+const colForm = (ck, ok, cs) => COL[ck].ru[OBJ[ok].g][cs];
+
+function phrase(f){
+  const o = OBJ[f.o], oo = f.o2 ? OBJ[f.o2] : null;
+
+  if (f.t === 'where'){
+    const c = COL[f.c];
+    return {
+      ru: ruSay([W.where, colForm(f.c, f.o, 'nom'), o.ru.nom], '?'),
+      my: mySay([[o.my.s, o.my.c], [c.my.s, c.my.c, true], M.where], '?'),
+    };
+  }
+
+  if (f.t === 'put'){
+    const c = COL[f.c], n1 = NUM[f.r], n2 = NUM[f.k];
+    return {
+      ru: ruSay([W.put, colForm(f.c, f.o, 'acc'), o.ru.acc, [':',':'],
+                 W.lineN, n1.ru, [',',','], W.colN, n2.ru], '.'),
+      my: mySay([[o.my.s, o.my.c], [c.my.s, c.my.c, true], [M.ko[0], M.ko[1], true],
+                 M.row, [n1.my.s, n1.my.c], ['၊', ',', true],
+                 M.col, [n2.my.s, n2.my.c], M.hma, M.put], '.'),
+    };
+  }
+
+  const rowMode = (f.t === 'inRow' || f.t === 'notInRow');
+  if (rowMode || f.t === 'inCol' || f.t === 'notInCol'){
+    const neg = f.t.startsWith('not'), n = NUM[f.n];
+    const ruParts = [o.ru.nom];
+    if (neg) ruParts.push(W.ne);
+    ruParts.push(W.v, rowMode ? W.lineP : W.colP, n.ru);
+    return {
+      ru: ruSay(ruParts, '.'),
+      my: mySay([[o.my.s, o.my.c], [M.ga[0], M.ga[1], true],
+                 rowMode ? M.row : M.col, [n.my.s, n.my.c], M.hma,
+                 neg ? M.isnt : M.is], '.'),
+    };
+  }
+
+  // отношения: выше / ниже / левее / правее
+  const rel = {above:[W.above, M.up], below:[W.below, M.down],
+               left:[W.left, M.lf],  right:[W.right, M.rt]}[f.t];
+  return {
+    ru: ruSay([o.ru.nom, rel[0], oo.ru.gen], '.'),
+    my: mySay([[o.my.s, o.my.c], [M.ga[0], M.ga[1], true],
+               [oo.my.s, oo.my.c], [M.htet[0], M.htet[1], true],
+               [rel[1][0], rel[1][1]], [M.hma[0], M.hma[1], true]], '.'),
+  };
+}
+
+/* ============================================================
+   3. ЗНАЧКИ
+   ============================================================ */
+
+const PATHS = {
+  cat:   '<path d="M6.5 9.5 5 2.5 10.5 6Z"/><path d="M17.5 9.5 19 2.5 13.5 6Z"/><circle cx="12" cy="14" r="7.2"/>',
+  fish:  '<ellipse cx="10.5" cy="12" rx="8.5" ry="5.4"/><path d="M19 12 23.5 7.5v9Z"/>',
+  house: '<path d="M12 2.5 22.5 11.2h-3.2V21.5H4.7V11.2H1.5Z"/>',
+  moon:  '<path d="M16 2.5A9.6 9.6 0 0 0 16 21.5 12 12 0 0 1 16 2.5Z"/>',
+};
+function svg(objKey, colorKey){
+  const fill = colorKey ? COL[colorKey].hex : 'var(--muted)';
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" style="fill:${fill};stroke:currentColor;stroke-width:.9;paint-order:stroke">${PATHS[OBJ[objKey].icon]}</svg>`;
+}
+
+/* ============================================================
+   4. СТАТИСТИКА СЛОВ (интервальное повторение через веса)
+   ============================================================ */
+
+const SKEY = 'tolmach.stats.v1';
+let stats = {};
+try { stats = JSON.parse(localStorage.getItem(SKEY) || '{}') || {}; } catch (e) { stats = {}; }
+function saveStats(){ try { localStorage.setItem(SKEY, JSON.stringify(stats)); } catch (e) {} }
+function bump(keys, missed){
+  for (const k of keys){
+    const s = stats[k] || (stats[k] = {seen:0, miss:0});
+    s.seen++; if (missed) s.miss++;
+  }
+  saveStats();
+}
+function weight(k){
+  const s = stats[k] || {seen:0, miss:0};
+  return 1 + s.miss * 2.5 + 4 / (1 + s.seen);
+}
+function pickWeighted(keys, n){
+  const pool = keys.slice(), out = [];
+  while (out.length < n && pool.length){
+    const w = pool.map(weight), total = w.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total, i = 0;
+    while (r > w[i] && i < pool.length - 1) r -= w[i++];
+    out.push(pool.splice(i, 1)[0]);
+  }
+  return out;
+}
+const factWords = f => [f.o, f.o2, f.c, f.r !== undefined ? 'n' + f.r : null,
+                        f.k !== undefined ? 'n' + f.k : null, f.n !== undefined ? 'n' + f.n : null]
+                       .filter(Boolean);
+
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rnd = a => a[(Math.random() * a.length) | 0];
+
+/* ============================================================
+   5. ГЕНЕРАТОРЫ ЭТАПОВ
+   ============================================================ */
+
+/* Этап 1 — вопросы. На доске 2×2 перекрёстка «два предмета × два цвета»
+   плюс один отвлекающий: и предмет, и цвет нужны, чтобы понять, о чём речь. */
+function makeWarmup(){
+  const [oA, oB, oC] = pickWeighted(Object.keys(OBJ), 3);
+  const [cA, cB, cC] = pickWeighted(Object.keys(COL), 3);
+  const items = [
+    {o:oA, c:cA}, {o:oA, c:cB}, {o:oB, c:cA}, {o:oB, c:cB}, {o:oC, c:cC},
+  ];
+  const cells = shuffle([0,1,2,3,4,5,6,7,8]).slice(0, items.length);
+  const board = Array(9).fill(null);
+  items.forEach((it, i) => board[cells[i]] = it);
+
+  const asks = shuffle(items.slice());
+  while (asks.length < 6) asks.push(rnd(items));
+  return {
+    board,
+    tasks: asks.slice(0, 6).map(it => ({t:'where', o:it.o, c:it.c,
+      answer: board.findIndex(b => b && b.o === it.o && b.c === it.c)})),
+  };
+}
+
+/* Этап 2 — диктовка. Доска пуста, сбоку палитра из 8 фишек (6 нужных + 2 лишние). */
+function makeDictation(){
+  const combos = [];
+  for (const o of Object.keys(OBJ)) for (const c of Object.keys(COL)) combos.push({o, c});
+  const keyOf = x => x.o + '/' + x.c;
+  const weighted = pickWeighted(combos.map(keyOf), 8).map(k => {
+    const [o, c] = k.split('/'); return {o, c};
+  });
+  const need = weighted.slice(0, 6);
+  const cells = shuffle([0,1,2,3,4,5,6,7,8]).slice(0, 6);
+  return {
+    board: Array(9).fill(null),
+    palette: shuffle(weighted.slice()),
+    tasks: need.map((it, i) => ({t:'put', o:it.o, c:it.c,
+      r:(cells[i] / 3) | 0, k:cells[i] % 3, answer:cells[i]})),
+  };
+}
+
+/* Этап 3 — логическая задача.
+   Три предмета, у каждого своя линия и своя колонка: 36 расстановок.
+   Улики отбираются жадно, пока не останется одна расстановка. */
+function makeLogic(){
+  const objs = pickWeighted(Object.keys(OBJ), 3);
+  const perms = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+  const all = [];
+  for (const rp of perms) for (const cp of perms)
+    all.push(objs.map((k, i) => ({k, r:rp[i], c:cp[i]})));
+  const truth = rnd(all);
+  const at = (arr, k) => arr.find(x => x.k === k);
+
+  const holds = (arr, f) => {
+    const a = at(arr, f.o), b = f.o2 ? at(arr, f.o2) : null;
+    switch (f.t){
+      case 'inRow':    return a.r === f.n;
+      case 'notInRow': return a.r !== f.n;
+      case 'inCol':    return a.c === f.n;
+      case 'notInCol': return a.c !== f.n;
+      case 'above':    return a.r < b.r;
+      case 'below':    return a.r > b.r;
+      case 'left':     return a.c < b.c;
+      case 'right':    return a.c > b.c;
+    }
+  };
+
+  const pool = [];
+  for (const o of truth){
+    pool.push({t:'inRow', o:o.k, n:o.r}, {t:'inCol', o:o.k, n:o.c});
+    for (let n = 0; n < 3; n++){
+      if (n !== o.r) pool.push({t:'notInRow', o:o.k, n});
+      if (n !== o.c) pool.push({t:'notInCol', o:o.k, n});
+    }
+  }
+  for (const a of truth) for (const b of truth) if (a.k !== b.k){
+    pool.push({t: a.r < b.r ? 'above' : 'below', o:a.k, o2:b.k});
+    pool.push({t: a.c < b.c ? 'left'  : 'right', o:a.k, o2:b.k});
+  }
+
+  shuffle(pool);
+  let cands = all.slice();
+  const chosen = [];
+  for (const f of pool){
+    if (cands.length === 1) break;
+    const next = cands.filter(a => holds(a, f));
+    if (next.length < cands.length){ chosen.push(f); cands = next; }
+  }
+  // добить до шести — оставшиеся улики верны, просто уже избыточны
+  for (const f of pool){
+    if (chosen.length >= 6) break;
+    if (!chosen.includes(f) && holds(truth, f)) chosen.push(f);
+  }
+  shuffle(chosen);
+  return {objs, truth, tasks: chosen.slice(0, 6).map(f => ({...f}))};
+}
+
+/* ============================================================
+   6. СОСТОЯНИЕ И ЭКРАНЫ
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const el = {
+  intro:$('intro'), play:$('play'), result:$('result'), vocab:$('vocab'),
+  stages:$('stages'), score:$('score'), scoreval:$('scoreval'),
+  grid:$('grid'), palette:$('palette'), msg:$('msg'), advance:$('advance'), progress:$('progress'),
+  ruHead:$('ruHead'), myHead:$('myHead'), ruBody:$('ruBody'), myBody:$('myBody'),
+  panelRu:$('panelRu'), panelMy:$('panelMy'),
+};
+
+let S = null;
+function freshState(){
+  return {stage:0, i:0, score:0, tried:false, reader:'ru',
+          board:null, palette:null, tasks:null, sel:null, phase:'read',
+          logRu:[], logMy:[], puzzle:null, placed:null};
+}
+
+const MAX_SCORE = 6 + 6 + 3;
+
+function startStage(n){
+  S.stage = n; S.i = 0; S.tried = false; S.sel = null;
+  S.logRu = []; S.logMy = []; S.phase = 'read';
+  if (n === 1){ const g = makeWarmup(); S.board = g.board; S.tasks = g.tasks; S.palette = null; }
+  if (n === 2){ const g = makeDictation(); S.board = g.board; S.tasks = g.tasks; S.palette = g.palette; }
+  if (n === 3){
+    const g = makeLogic();
+    S.puzzle = g; S.tasks = g.tasks; S.board = Array(9).fill(null);
+    S.palette = g.objs.map(o => ({o, c:null})); S.placed = {};
+  }
+  render();
+}
+
+function task(){ return S.tasks[S.i]; }
+
+/* ---------- отрисовка ---------- */
+
+function render(){
+  el.intro.hidden = S.stage !== 0;
+  el.play.hidden   = S.stage === 0 || S.stage === 4;
+  el.result.hidden = S.stage !== 4;
+  el.stages.hidden = S.stage === 0;
+  el.score.hidden  = S.stage === 0;
+  el.scoreval.textContent = S.score;
+
+  for (const chip of el.stages.children){
+    const n = +chip.dataset.s;
+    chip.dataset.on   = n === S.stage ? '1' : '0';
+    chip.dataset.done = n < S.stage ? '1' : '0';
+  }
+  if (S.stage === 0 || S.stage === 4) return;
+
+  renderPanels();
+  renderBoard();
+  renderPalette();
+
+  const total = S.tasks.length;
+  el.progress.textContent = S.phase === 'solve'
+    ? 'Расставьте · နေရာချပါ'
+    : `${Math.min(S.i + 1, total)} / ${total}`;
+}
+
+function renderPanels(){
+  const f = task();
+  const p = f ? phrase(f) : null;
+  const heIsReader = S.reader === 'ru';
+  const solving = S.phase === 'solve';
+
+  el.panelRu.dataset.active = (!solving && heIsReader) ? '1' : '0';
+  el.panelMy.dataset.active = (!solving && !heIsReader) ? '1' : '0';
+  el.ruHead.textContent = solving ? 'Решайте вместе' : (heIsReader ? 'Читай вслух' : 'Слушай');
+  el.myHead.textContent = solving ? 'အတူတူဖြေပါ' : (heIsReader ? 'နားထောင်ပါ' : 'အသံထွက်ဖတ်ပါ');
+
+  const hintRu = {1:'Она нажмёт на клетку.', 2:'Она выберет предмет и клетку.', 3:'Запоминай — улики не повторяются.'}[S.stage];
+  const hintMy = {1:'ကွက်တစ်ကွက်ကို နှိပ်ပါ။', 2:'ပစ္စည်းရွေးပြီး ကွက်ကိုနှိပ်ပါ။', 3:'မှတ်ထားပါ — သဲလွန်စတွေ ထပ်မပြပါ။'}[S.stage];
+
+  // ЕГО панель: всё кириллицей — бирманская фраза в транслитерации + русский смысл
+  if (!solving && heIsReader){
+    el.ruBody.innerHTML =
+      `<div class="read">${p.my.c}</div>` +
+      `<div class="gloss">${p.ru.cyr}</div>` +
+      `<div class="legend">ударение = высокий тон · тх = англ. th</div>` +
+      logHtml(S.logRu, false);
+  } else {
+    el.ruBody.innerHTML =
+      `<div class="listen">${solving ? 'Сложите улики и расставьте предметы.' : 'Слушай и переспрашивай.'}</div>` +
+      (solving ? '' : `<div class="hint">${hintRu}</div>`) +
+      logHtml(S.logRu, false);
+  }
+
+  // ЕЁ панель: всё бирманским письмом — русская фраза в транслитерации + бирманский смысл
+  if (!solving && !heIsReader){
+    el.myBody.innerHTML =
+      `<div class="read mm">${p.ru.mm}</div>` +
+      `<div class="gloss mm">${p.my.s}</div>` +
+      logHtml(S.logMy, true);
+  } else {
+    el.myBody.innerHTML =
+      `<div class="listen mm">${solving ? 'သဲလွန်စတွေ ပေါင်းပြီး နေရာချပါ။' : 'နားထောင်ပါ။'}</div>` +
+      (solving ? '' : `<div class="hint mm">${hintMy}</div>`) +
+      logHtml(S.logMy, true);
+  }
+}
+
+function logHtml(log, isMy){
+  if (!log.length) return '';
+  return '<div class="log">' + log.map(x =>
+    `<div class="log-item${isMy ? ' mm' : ''}">${x.main}<div class="g">${x.sub}</div></div>`).join('') + '</div>';
+}
+
+function renderBoard(){
+  const solving = S.phase === 'solve';
+  const clickable = S.stage !== 3 || solving;
+  let html = '<div class="hdr corner">.</div>';
+  for (let c = 0; c < 3; c++) html += `<div class="hdr">${c + 1}<span class="mm">${NUM[c].my.s}</span></div>`;
+  for (let r = 0; r < 3; r++){
+    html += `<div class="hdr">${r + 1}<span class="mm">${NUM[r].my.s}</span></div>`;
+    for (let c = 0; c < 3; c++){
+      const i = r * 3 + c, it = S.board[i];
+      html += `<button class="cell" data-i="${i}" ${clickable ? '' : 'disabled'}>${it ? svg(it.o, it.c) : ''}</button>`;
+    }
+  }
+  el.grid.innerHTML = html;
+}
+
+function renderPalette(){
+  if (S.stage === 1 || (S.stage === 3 && S.phase !== 'solve')){
+    el.palette.innerHTML = ''; el.palette.hidden = true; return;
+  }
+  el.palette.hidden = false;
+  el.palette.innerHTML = S.palette.map((p, n) => {
+    const used = S.stage === 3 && S.placed[p.o] !== undefined;
+    return `<button class="chip" data-p="${n}" aria-pressed="${S.sel === n}" ${used ? 'disabled' : ''}>${svg(p.o, p.c)}</button>`;
+  }).join('');
+}
+
+function say(text, cls){
+  el.msg.className = 'board-msg' + (cls ? ' ' + cls : '');
+  el.msg.innerHTML = text;
+}
+
+/* ---------- ход ---------- */
+
+function flash(i, ok){
+  const c = el.grid.querySelector(`.cell[data-i="${i}"]`);
+  if (!c) return;
+  c.classList.add(ok ? 'hit' : 'miss');
+  setTimeout(() => c.classList.remove('hit', 'miss'), 520);
+}
+
+function nextTask(){
+  S.i++; S.tried = false; S.sel = null;
+  if (S.i >= S.tasks.length){
+    if (S.stage === 3){ S.phase = 'solve'; say('Расставьте предметы и проверьте.<br><span class="mm">ပစ္စည်းတွေချပြီး စစ်ပါ။</span>'); render(); showAdvance('Проверить · စစ်မယ်', checkLogic); return; }
+    finishStage(); return;
+  }
+  S.reader = S.reader === 'ru' ? 'my' : 'ru';
+  say('');
+  render();
+}
+
+function finishStage(){
+  if (S.stage < 3) startStage(S.stage + 1);
+  else { S.stage = 4; renderResult(); render(); }
+}
+
+function showAdvance(label, fn){
+  el.advance.hidden = false;
+  el.advance.innerHTML = label;
+  el.advance.onclick = fn;
+}
+function hideAdvance(){ el.advance.hidden = true; el.advance.onclick = null; }
+
+el.grid.addEventListener('click', e => {
+  const b = e.target.closest('.cell'); if (!b || b.disabled) return;
+  const i = +b.dataset.i;
+
+  if (S.stage === 1){
+    const f = task(), ok = i === f.answer;
+    flash(i, ok);
+    if (ok){
+      if (!S.tried) S.score++;
+      bump(factWords(f), S.tried);
+      say('Верно · မှန်တယ်', 'ok');
+      hideAdvance();
+      setTimeout(nextTask, 650);
+    } else {
+      S.tried = true;
+      say('Не то · မဟုတ်ဘူး — ещё раз · ထပ်ဖတ်ပါ', 'no');
+    }
+    return;
+  }
+
+  if (S.stage === 2){
+    if (S.sel === null){ say('Сначала предмет · အရင်ပစ္စည်းရွေးပါ'); return; }
+    const f = task(), p = S.palette[S.sel];
+    const ok = i === f.answer && p.o === f.o && p.c === f.c;
+    flash(i, ok);
+    if (ok){
+      if (!S.tried) S.score++;
+      bump(factWords(f), S.tried);
+      S.board[i] = {o:p.o, c:p.c};
+      say('Верно · မှန်တယ်', 'ok');
+      setTimeout(nextTask, 650);
+    } else {
+      S.tried = true;
+      say('Не то · မဟုတ်ဘူး — ещё раз · ထပ်ဖတ်ပါ', 'no');
+      S.sel = null; renderPalette();
+    }
+    return;
+  }
+
+  if (S.stage === 3 && S.phase === 'solve'){
+    if (S.board[i]){                       // снять предмет с клетки
+      delete S.placed[S.board[i].o];
+      S.board[i] = null;
+    } else if (S.sel !== null){
+      const p = S.palette[S.sel];
+      if (S.placed[p.o] !== undefined) S.board[S.placed[p.o]] = null;
+      S.board[i] = {o:p.o, c:null};
+      S.placed[p.o] = i;
+      S.sel = null;
+    } else { say('Сначала предмет · အရင်ပစ္စည်းရွေးပါ'); return; }
+    say('');
+    renderBoard(); renderPalette();
+  }
+});
+
+el.palette.addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b || b.disabled) return;
+  const n = +b.dataset.p;
+  S.sel = S.sel === n ? null : n;
+  renderPalette();
+});
+
+function checkLogic(){
+  if (Object.keys(S.placed).length < 3){
+    say('Не все предметы на доске · ပစ္စည်းအကုန်မချရသေးဘူး', 'no'); return;
+  }
+  let right = 0;
+  for (const t of S.puzzle.truth){
+    const i = S.placed[t.k];
+    const ok = i === t.r * 3 + t.c;
+    if (ok) right++;
+    flash(i, ok);
+  }
+  S.score += right;
+  const missed = right < 3;
+  for (const f of S.tasks) bump(factWords(f), missed);
+  say(right === 3
+      ? 'Всё верно · အကုန်မှန်တယ်'
+      : `Верно ${right} из 3 · ၃ ခုမှာ ${NUM[right - 1] ? NUM[right - 1].my.s : '၀'} ခုမှန်တယ်`,
+      right === 3 ? 'ok' : 'no');
+  hideAdvance();
+  setTimeout(() => { S.stage = 4; renderResult(); render(); }, 1400);
+}
+
+/* ---------- запись прочитанного в журнал ---------- */
+
+function logCurrent(){
+  const f = task(), p = phrase(f);
+  if (S.reader === 'ru') S.logRu.push({main:p.my.c, sub:p.ru.cyr});
+  else                   S.logMy.push({main:p.ru.mm, sub:p.my.s});
+}
+
+/* этап 3: читающий жмёт «дальше», ход на доске не делается */
+function logicStep(){
+  logCurrent();
+  bump(factWords(task()), false);
+  nextTask();
+  if (S.phase === 'read') showAdvance('Дальше · ဆက်သွား', logicStep);
+}
+
+/* ============================================================
+   7. РЕЗУЛЬТАТ И СЛОВАРЬ
+   ============================================================ */
+
+function renderResult(){
+  const pct = Math.round(S.score / MAX_SCORE * 100);
+  const line = pct === 100 ? 'Ни одной осечки.'
+             : pct >= 70  ? 'Друг друга слышно.'
+             : pct >= 40  ? 'Уже разбираете.'
+             :              'Первый круг всегда такой.';
+  el.result.innerHTML =
+    `<h2>${S.score} / ${MAX_SCORE}</h2>` +
+    `<p class="sub">${line} <span class="mm">· ${pct}%</span></p>` +
+    `<div class="actions">
+       <button class="btn" id="again">Ещё партия · နောက်တစ်ပွဲ</button>
+       <button class="btn ghost" id="toVocab">Разбор слов · ဝေါဟာရ</button>
+     </div>`;
+  $('again').onclick = () => { S = freshState(); startStage(1); el.vocab.hidden = true; window.scrollTo(0, 0); };
+  $('toVocab').onclick = () => { buildVocab(); el.vocab.hidden = false; el.vocab.scrollIntoView({behavior:'smooth', block:'start'}); };
+  buildVocab();
+}
+
+function vocabRows(){
+  const rows = [];
+  const push = (sec) => rows.push({sec});
+  const add = (key, ruPair, myWord) => rows.push({key, ru:ruPair[0], ruMM:ruPair[1], myS:myWord.s, myC:myWord.c});
+
+  push('Предметы · ပစ္စည်း');
+  for (const k in OBJ) add(k, OBJ[k].ru.nom, OBJ[k].my);
+  push('Цвета · အရောင်');
+  for (const k in COL) add(k, COL[k].ru.f.nom, COL[k].my);
+  push('Числа · ဂဏန်း');
+  NUM.forEach((n, i) => add('n' + i, n.ru, n.my));
+  push('Доска и связки · ဘုတ်အဖွဲ့');
+  add(null, W.lineN, {s:M.row[0], c:M.row[1]});
+  add(null, W.colN,  {s:M.col[0], c:M.col[1]});
+  add(null, W.put,   {s:M.put[0], c:M.put[1]});
+  add(null, W.where, {s:M.where[0], c:M.where[1]});
+  add(null, W.ne,    {s:M.isnt[0], c:M.isnt[1]});
+  add(null, W.above, {s:M.up[0], c:M.up[1]});
+  add(null, W.below, {s:M.down[0], c:M.down[1]});
+  add(null, W.left,  {s:M.lf[0], c:M.lf[1]});
+  add(null, W.right, {s:M.rt[0], c:M.rt[1]});
+  return rows;
+}
+
+function buildVocab(){
+  const rows = vocabRows().map(r => {
+    if (r.sec) return `<tr><td class="sec" colspan="5">${r.sec}</td></tr>`;
+    const s = r.key && stats[r.key];
+    const tag = s && s.miss ? `<span class="miss-tag">${s.miss}</span>` : '';
+    return `<tr>
+      <td class="cyr">${r.ru}</td>
+      <td class="mm">${r.ruMM}</td>
+      <td class="mms mm">${r.myS}</td>
+      <td class="cyr">${r.myC}</td>
+      <td>${tag}</td></tr>`;
+  }).join('');
+  el.vocab.innerHTML =
+    `<h3>Словарь · ဝေါဟာရ</h3>
+     <div class="vscroll"><table class="vtable">
+       <thead><tr>
+         <th>Русский</th><th>он же — ей</th><th>မြန်မာ</th><th>он же — ему</th><th>ошибки</th>
+       </tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ============================================================
+   8. ЗАПУСК
+   ============================================================ */
+
+$('start').onclick = () => { S = freshState(); startStage(1); };
+$('toggleVocab').onclick = () => {
+  const show = el.vocab.hidden;
+  if (show) buildVocab();
+  el.vocab.hidden = !show;
+};
+
+// этап 3 управляется кнопкой «Дальше», а не доской
+const _render = render;
+render = function(){
+  _render();
+  if (S && S.stage === 3 && S.phase === 'read') showAdvance('Дальше · ဆက်သွား', logicStep);
+  else if (S && !(S.stage === 3 && S.phase === 'solve')) hideAdvance();
+};
+
+function boot(data){
+  S = (data && data.stage) ? data : freshState();
+  render();
+}
+if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
+else boot((window.claude && window.claude.hot && window.claude.hot.data) || {});
+if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => S);
+</script>
+
+</html>

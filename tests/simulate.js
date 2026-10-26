@@ -1,7 +1,7 @@
 // Plays 200 random games against the pure rules engine in index.html and fails on stuck phases or bad numbers.
 // Run: node tests/simulate.js
 const fs=require('fs'),vm=require('vm');
-const src=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'..','index.html'),'utf8');
+const src=fs.readFileSync(process.argv[2]||require('path').join(__dirname,'..','golden-land','index.html'),'utf8');
 const js=src.slice(src.indexOf('/* ================= DATA'),src.indexOf('/* ================= NETWORK'));
 const ctx={console,Math,JSON,Date,setTimeout,window:{},localStorage:{getItem(){return null},setItem(){}}};vm.createContext(ctx);
 vm.runInContext(js+';this.api={newGame,doRoll,doBuy,doEnd,doChallenge,doMini,doJailPay,canBuild,doManage,buyoutable,doBuyout,buyoutPrice,doLoan,doRepay,doStock,netWorth,loanLimit,season,B,ASSETS,canMortgage,makeMini,HOUSE};',ctx);
