@@ -6,7 +6,7 @@
 <title>PuzzleGekko</title>
 <meta name="description" content="Small games for two: a property game set in Thailand and Myanmar, and a Russian–Burmese listening puzzle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
 <style>
 /* Layout: one column; a big wordmark with a gecko, then one wide card per game showing a slice of that game's own look. */
 :root{
@@ -62,6 +62,13 @@ h1 span{color:var(--skin)}
 .gl .dice{display:flex;gap:10px;justify-content:center;margin-top:14px}
 .gl .dice i{width:34px;height:34px;border-radius:7px;background:#fbf2dc;display:grid;place-items:center;box-shadow:0 3px 0 #b49a6a}
 .gl .dice i::after{content:"";width:8px;height:8px;border-radius:50%;background:#9e2a1f}
+/* Sabai Thai slice: Thai script and the five tone colours */
+.st{background:#fff8ef;color:#20262c}
+.st .t{text-align:center}
+.st .thx{display:block;font-family:"Sarabun","Noto Sans Thai",sans-serif;font-weight:700;font-size:clamp(40px,7vw,58px);color:#0e6b74;line-height:1.2}
+.st .t>i{font-style:normal;color:#d9577f;font-weight:600}
+.st .tones{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.st .tones i{width:26px;height:8px;border-radius:99px;background:var(--c)}
 /* Tolmach slice: two alphabets on paper */
 .tm{background:#f2eee4;color:#20221d}
 .tm .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:340px}
@@ -92,7 +99,7 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
     </svg>
     <div>
       <h1>Puzzle<span>Gekko</span></h1>
-      <p class="tag">Small games for two people who speak different languages. Play on one screen together, or each on your own phone.</p>
+      <p class="tag">Small games and a Thai course for people who speak different languages. Play on one screen together, or each on your own phone.</p>
     </div>
   </header>
 
@@ -104,6 +111,16 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
         <p>A property-trading board game across Thailand and Myanmar: 22 real places from Hpa-An to the Grand Palace, buyouts, a gem market, festival mini-games and rules you pick before each game.</p>
         <div class="facts"><span>2 players</span><span>Online or one device</span><span>English</span><span>45–90 min</span></div>
         <span class="play">Play Golden Land →</span>
+      </div>
+    </a>
+
+    <a class="game" href="sabai-thai/">
+      <div class="art st"><div class="t"><b class="thx">ภาษาไทย</b><i>khàwp-khun · <span class="mm">ခေါက်ခွန်</span></i><div class="tones"><i style="--c:#7a8794"></i><i style="--c:#3b6fd1"></i><i style="--c:#c2412d"></i><i style="--c:#d9577f"></i><i style="--c:#2f8f4e"></i></div></div></div>
+      <div class="info">
+        <h2>Sabai Thai · <span class="mm">ထိုင်းစကား</span></h2>
+        <p>Learn Thai from Burmese: 323 words with Thai audio and Burmese and English sounds, daily spaced-repetition lessons, a tone trainer, the Thai alphabet, market prices and a phrasebook. Progress is saved to your account.</p>
+        <div class="facts"><span>Learning</span><span>Burmese · English</span><span>Google or study code</span><span>10 min a day</span></div>
+        <span class="play">Start learning →</span>
       </div>
     </a>
 

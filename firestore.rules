@@ -27,6 +27,21 @@ service cloud.firestore {
       allow delete: if signedIn();
     }
 
+    // Sabai Thai: progress opened with a study code, sabai-thai/<CODE>/data/progress.
+    match /sabai-thai/{code}/{section}/{doc} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+                            && code.size() == 8
+                            && section == 'data'
+                            && request.resource.data.size() < 60;
+      allow delete: if signedIn();
+    }
+
+    // Sabai Thai: progress of a Google account, readable and writable only by that account.
+    match /sabai-thai-users/{uid}/{section}/{doc} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // Next online game: add a block like the one above with its own collection name.
   }
 }

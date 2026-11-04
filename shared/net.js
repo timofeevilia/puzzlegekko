@@ -1,5 +1,5 @@
-// Online rooms for PuzzleGekko games, backed by Firebase (anonymous auth + Firestore).
-// Each game keeps its rooms under its own top-level collection: <game>/<ROOM>/...
+// Firebase for PuzzleGekko (auth + Firestore), shared by every game on the site.
+// Each game keeps its data under its own top-level collection: <game>/<ROOM>/...
 // The returned db mirrors the small part of the claude.ai `db` API the games use:
 // db.doc(path).onSnapshot / get / set / update / delete.
 import { FIREBASE_CONFIG } from "./firebase-config.js";
@@ -19,11 +19,12 @@ async function init() {
   ]);
   const app = initializeApp(FIREBASE_CONFIG);
   const a = auth.getAuth(app);
-  // reuse the anonymous account this browser already has, so a reload keeps your seat
+  // reuse the account this browser already has (anonymous or Google), so a reload keeps your seat
   const existing = await new Promise(res => { const un = auth.onAuthStateChanged(a, u => { un(); res(u); }); });
-  const user = existing || (await auth.signInAnonymously(a)).user;
-  return { fs, db: fs.getFirestore(app), uid: user.uid };
+  if (!existing) await auth.signInAnonymously(a);
+  return { fs, db: fs.getFirestore(app), auth, a };
 }
+const services = () => (ready = ready || init());
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O or 1/I
 export function newRoomCode(len = 4) {
@@ -31,15 +32,15 @@ export function newRoomCode(len = 4) {
   for (let i = 0; i < len; i++) s += ALPHABET[Math.random() * ALPHABET.length | 0];
   return s;
 }
-export function cleanRoomCode(v) {
+export function cleanRoomCode(v, min = 4, max = 8) {
   const s = String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  return s.length >= 4 && s.length <= 8 ? s : null;
+  return s.length >= min && s.length <= max ? s : null;
 }
 
-export async function openRoom(game, room) {
-  ready = ready || init();
-  const { fs, db, uid } = await ready;
-  const ref = p => fs.doc(db, `${game}/${room}/${p}`);
+// documents under a fixed path prefix, e.g. store("golden-land/K7QX").doc("game/current")
+export async function store(prefix) {
+  const { fs, db } = await services();
+  const ref = p => fs.doc(db, `${prefix}/${p}`);
   const wrap = snap => ({ exists: snap.exists(), data: () => snap.data() });
   const err = e => ({ code: e.code || "unavailable", message: e.message || String(e) });
   const doc = p => ({
@@ -50,5 +51,28 @@ export async function openRoom(game, room) {
     update: d => fs.setDoc(ref(p), d, { merge: true }),
     delete: () => fs.deleteDoc(ref(p)),
   });
-  return { uid, db: { doc } };
+  return { doc };
+}
+
+export async function openRoom(game, room) {
+  const { a } = await services();
+  return { uid: a.currentUser.uid, db: await store(`${game}/${room}`) };
+}
+
+// accounts: everyone starts as an anonymous guest; Google sign-in gives a profile that follows you across devices
+export async function currentUser() {
+  const { a } = await services();
+  const u = a.currentUser;
+  return u && { uid: u.uid, anonymous: u.isAnonymous, name: u.displayName || "", email: u.email || "" };
+}
+export async function signInWithGoogle() {
+  const { auth, a } = await services();
+  await auth.signInWithPopup(a, new auth.GoogleAuthProvider());
+  return currentUser();
+}
+export async function signOutToGuest() {
+  const { auth, a } = await services();
+  await auth.signOut(a);
+  await auth.signInAnonymously(a);
+  return currentUser();
 }

@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="my">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sabai Thai</title>
+<meta name="description" content="Learn Thai from Burmese: dictionary with Burmese and English sounds, Thai audio, spaced-repetition lessons, tones, letters, numbers and phrases.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&family=Sarabun:wght@400;600;700&family=Noto+Sans+Myanmar:wght@400;500;700&display=swap">
+<style>
+/* Layout: phone-first study app. Sticky top bar with streak and today's goal, one view at a time,
+   bottom tab bar on phones and a top tab row on wide screens. Thai is always the biggest text. */
+:root{
+  --bg:#fff8ef;          /* rice paper */
+  --surface:#ffffff;
+  --surface-2:#fdeedd;
+  --ink:#20262c;
+  --muted:#67707a;
+  --line:#efdcc6;
+  --teal:#0e6b74;        /* temple roof tile */
+  --teal-ink:#ffffff;
+  --gold:#e59a1c;        /* marigold */
+  --lotus:#d9577f;
+  --good:#2f8f4e; --bad:#c2412d;
+  --t0:#7a8794; --t1:#3b6fd1; --t2:#c2412d; --t3:#d9577f; --t4:#2f8f4e;   /* tone colours: mid low falling high rising */
+  --mc:#0e6b74; --hc:#d9577f; --lc:#e59a1c;                               /* consonant classes */
+  --shadow:0 1px 2px rgba(32,38,44,.06),0 10px 30px -18px rgba(32,38,44,.35);
+  --ui:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --th:"Sarabun","Leelawadee UI","Thonburi",sans-serif;
+  --my:"Noto Sans Myanmar","Myanmar Text","Padauk",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171b; --surface:#1a2127; --surface-2:#222b32; --ink:#eef1f3; --muted:#9aa5ae; --line:#2c363e;
+  --teal:#3fb3bd; --teal-ink:#06262a; --gold:#f2b34a; --lotus:#f08aaa; --good:#6cc98a; --bad:#ef7a66;
+  --t0:#a5b1bc; --t1:#7ea6ff; --t2:#ef7a66; --t3:#f08aaa; --t4:#6cc98a; --mc:#3fb3bd; --hc:#f08aaa; --lc:#f2b34a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -18px rgba(0,0,0,.8); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171b; --surface:#1a2127; --surface-2:#222b32; --ink:#eef1f3; --muted:#9aa5ae; --line:#2c363e;
+  --teal:#3fb3bd; --teal-ink:#06262a; --gold:#f2b34a; --lotus:#f08aaa; --good:#6cc98a; --bad:#ef7a66;
+  --t0:#a5b1bc; --t1:#7ea6ff; --t2:#ef7a66; --t3:#f08aaa; --t4:#6cc98a; --mc:#3fb3bd; --hc:#f08aaa; --lc:#f2b34a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -18px rgba(0,0,0,.8); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font-family:var(--ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+@media (min-width:860px){body{padding-bottom:24px}}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+.th{font-family:var(--th)} .my{font-family:var(--my);line-height:1.9}
+small,.small{font-size:12.5px;color:var(--muted)}
+.wrap{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:10px;padding-block:10px}
+.brand{display:flex;align-items:baseline;gap:8px;text-decoration:none;color:inherit;min-width:0}
+.brand b{font-weight:700;font-size:19px;letter-spacing:-.01em;color:var(--teal);white-space:nowrap}
+@media (max-width:430px){.brand span{display:none}}
+.brand span{font-size:13px;color:var(--muted);white-space:nowrap}
+.top .sp{flex:1}
+.pill{flex:none;white-space:nowrap;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:4px 10px;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
+.ring{--p:0;width:22px;height:22px;border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center}
+.ring::after{content:"";width:14px;height:14px;border-radius:50%;background:var(--surface)}
+.sync{font-size:11px;color:var(--muted)}
+
+/* tabs */
+.tabs{display:flex;gap:4px}
+.tabs button{border:none;background:none;padding:8px 12px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:0;color:var(--muted);font-size:12px;line-height:1.2}
+.tabs button .i{font-size:20px;line-height:1.2}
+.tabs button .my{font-size:11.5px;line-height:1.5}
+.tabs button[aria-current="page"]{color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding:4px max(6px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+.tabbar .tabs{justify-content:space-around}
+.tabbar .tabs button{flex:1;padding:6px 2px}
+.toptabs{display:none}
+@media (min-width:860px){.tabbar{display:none}.toptabs{display:block;border-top:1px solid var(--line)}.toptabs .tabs{padding-block:4px}.toptabs .tabs button{flex-direction:row;gap:6px;font-size:13.5px}}
+
+main{padding-block:18px 24px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+h2{font-size:21px} h3{font-size:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.btn{border:1px solid transparent;background:var(--teal);color:var(--teal-ink);font-weight:700;padding:10px 18px;border-radius:14px;display:inline-flex;flex-direction:column;align-items:center;gap:0;justify-content:center;text-decoration:none;line-height:1.3;text-align:center}
+.btn .my{font-weight:500;font-size:.88em}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btn.gold{background:var(--gold);color:#2b1a00}
+.btn.big{font-size:17px;padding:14px 22px;border-radius:16px;width:100%}
+.btn.sm{font-size:13px;padding:7px 12px;border-radius:11px}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn .my{line-height:1.6}
+.icon{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);display:inline-grid;place-items:center;font-size:18px;flex:none}
+.icon.on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:13px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
+.chip .my{line-height:1.5}
+.note{background:color-mix(in srgb,var(--gold) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--gold) 40%,var(--line));border-radius:14px;padding:12px 14px;font-size:13.5px}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:99px}
+
+/* word display */
+.thai-big{font-family:var(--th);font-weight:600;font-size:clamp(44px,13vw,72px);line-height:1.25;text-align:center}
+.thai-md{font-family:var(--th);font-weight:600;font-size:26px;line-height:1.3}
+.rom{font-weight:500;color:var(--teal);letter-spacing:.01em}
+.mys{font-family:var(--my);color:var(--lotus);line-height:1.9}
+.syls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.syl{display:flex;flex-direction:column;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:var(--surface-2);min-width:64px}
+.syl .r{font-weight:700;font-size:15px}
+.syl .m{font-family:var(--my);font-size:13px;color:var(--lotus);line-height:1.8}
+.tone{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--tc)}
+.tone svg{width:22px;height:14px;display:block}
+.mean{font-family:var(--my);font-size:20px;line-height:1.8;text-align:center}
+.mean-en{text-align:center;color:var(--muted)}
+
+/* learn */
+.hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.bigring{--p:0;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),var(--surface-2) 0);display:grid;place-items:center}
+.bigring div{width:76px;height:76px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center;font-weight:700;font-size:18px;line-height:1.1}
+.bigring div small{display:block;font-weight:500;font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--surface-2);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);line-height:1.4;display:block}
+.stat .my{font-size:11.5px;line-height:1.7}
+.lesson{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.progress{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .3s}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;align-items:center;min-height:320px;justify-content:center;text-align:center}
+.qkind{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.qkind .my{text-transform:none;letter-spacing:0;font-size:13px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+@media (max-width:420px){.opts{grid-template-columns:1fr}}
+.opt{border:1.5px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center}
+.opt .my{font-size:16px;line-height:1.8}
+.opt.th{font-size:28px;font-weight:600}
+.opt.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.ansrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.btn.no{background:var(--bad);color:#fff}
+.btn.yes{background:var(--good);color:#fff}
+.feedback{font-weight:700;font-size:17px}
+.feedback.ok{color:var(--good)} .feedback.no{color:var(--bad)}
+.mic{width:76px;height:76px;border-radius:50%;border:none;background:var(--lotus);color:#fff;font-size:30px;box-shadow:0 8px 24px -8px var(--lotus)}
+.mic.rec{animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+.topicpick{display:flex;gap:6px;flex-wrap:wrap}
+
+/* dictionary */
+.search{display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 6px 4px 12px}
+.search input{flex:1;min-width:0;border:none;background:none;font:inherit;font-size:16px;padding:8px 0;color:var(--ink);outline:none}
+.wlist{display:flex;flex-direction:column;gap:8px}
+.witem{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.witem .t{font-family:var(--th);font-weight:600;font-size:24px;line-height:1.3}
+.witem .r{font-size:13.5px}
+.witem .m{font-family:var(--my);font-size:15px;line-height:1.8}
+.witem .e{font-size:12.5px;color:var(--muted)}
+.dots{display:flex;gap:3px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--teal)}
+.wdetail{grid-column:1/-1;border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:10px}
+.wopen{border:none;background:none;text-align:left;padding:0;display:flex;flex-direction:column;gap:0;min-width:0}
+
+/* sounds */
+.toneguide{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.toneguide{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tg{border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--surface);text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center}
+.tg svg{width:60px;height:36px}
+.tg b{color:var(--tc)}
+.tonebtns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:100%}
+.tonebtns button{border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:0;color:var(--tc)}
+.tonebtns button svg{width:34px;height:22px}
+.tonebtns button .my{font-size:11.5px;line-height:1.6}
+.tonebtns button.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.tonebtns button.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.tset{display:flex;gap:8px;flex-wrap:wrap}
+.tset button{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:8px 12px;display:flex;flex-direction:column;align-items:center;min-width:78px}
+.tset button .th{font-size:24px;font-weight:600;line-height:1.3}
+.letters{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.letter{border:1px solid var(--line);border-top:4px solid var(--cc);background:var(--surface);border-radius:14px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:0}
+.letter .th{font-size:34px;font-weight:600;line-height:1.25}
+.letter small{font-size:11px}
+.letter small.th{font-size:14px;font-weight:500;line-height:1.3}
+.letter[aria-pressed="true"]{box-shadow:0 0 0 2px var(--cc)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;background:var(--cc)}
+.vowels{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.vowel{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center}
+.vowel .th{font-size:26px;font-weight:600;line-height:1.3}
+.numin{font:inherit;font-size:28px;font-weight:700;text-align:center;width:100%;max-width:260px;padding:10px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums}
+.digits{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.digit{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center}
+.digit .th{font-size:28px;font-weight:600;line-height:1.2}
+
+/* phrases */
+.plist{display:flex;flex-direction:column;gap:8px}
+.phrase{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}
+.phrase .t{font-family:var(--th);font-weight:600;font-size:22px;line-height:1.35}
+.phrase .acts{display:flex;gap:6px;grid-row:1/span 4;grid-column:2;flex-direction:column}
+
+/* progress */
+.days{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px;align-items:end;height:90px}
+.days div{background:var(--surface-2);border-radius:5px 5px 2px 2px;min-height:4px;position:relative}
+.days div.on{background:var(--gold)}
+.days div.goal{background:var(--teal)}
+.daylab{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px;font-size:10px;color:var(--muted);text-align:center}
+.catrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13.5px}
+.catrow .my{font-size:13px;line-height:1.6}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.setting:last-child{border-bottom:none}
+.setting select,.setting input[type=number]{font:inherit;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.switch{appearance:none;width:44px;height:26px;border-radius:13px;background:var(--line);position:relative;cursor:pointer;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch:checked{background:var(--teal)}
+.switch:checked::after{transform:translateX(18px)}
+
+/* login */
+.login{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px;padding-block:24px}
+.login h1{font-size:34px;color:var(--teal)}
+.login .lead{font-size:16px}
+.login .th-hero{font-family:var(--th);font-size:44px;font-weight:700;color:var(--gold);line-height:1.2}
+.codebox{font-size:28px;font-weight:700;letter-spacing:.18em;text-align:center;padding:10px;border:2px dashed var(--gold);border-radius:14px;font-variant-numeric:tabular-nums}
+.login input{font:inherit;font-size:18px;padding:11px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-transform:uppercase;letter-spacing:.12em;width:100%}
+.toast-wrap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:40;width:min(440px,calc(100% - 32px));pointer-events:none}
+@media (min-width:860px){.toast-wrap{bottom:24px}}
+.toast{background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:14px;font-size:14px;box-shadow:var(--shadow);animation:pop .2s}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../" title="PuzzleGekko"><b>Sabai Thai</b><span class="my">ထိုင်းစကား</span></a>
+    <div class="sp"></div>
+    <span class="sync" id="sync"></span>
+    <div class="pill" id="streak" title="Day streak · ရက်ဆက်">🔥 0</div>
+    <div class="pill" id="today" title="Today's goal · ဒီနေ့ ပန်းတိုင်"><span class="ring" id="ring"></span><span id="xp">0</span></div>
+  </div>
+  <nav class="toptabs" aria-label="Sections"><div class="wrap"><div class="tabs" id="tabsTop"></div></div></nav>
+</header>
+<main class="wrap" id="view"></main>
+<nav class="tabbar" aria-label="Sections"><div class="tabs" id="tabsBottom"></div></nav>
+<div class="toast-wrap" id="toasts"></div>
+
+<script src="data.js"></script>
+<script>
+"use strict";
+const D = window.SABAI_DATA;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.random() * a.length | 0];
+const DAY = 864e5;
+const todayKey = (t = Date.now()) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const ls = { get(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch (e) {} } };
+function toast(msg){ const w = $("#toasts"), t = document.createElement("div"); t.className = "toast"; t.innerHTML = msg; w.appendChild(t); setTimeout(() => t.remove(), 3800); while (w.children.length > 3) w.firstChild.remove(); }
+
+/* ================= PHONETICS =================
+   A syllable like "khɔɔp1" is split into onset + vowel nucleus + final + tone,
+   then written two ways: English-style letters with a tone accent, and Burmese letters. */
+const ONSETS = ["khr","khl","khw","phr","phl","kr","kl","kw","pr","pl","tr","kh","ph","th","ch","ng","k","p","t","j","b","d","s","h","m","n","l","r","w","y","f"];
+const NUCLEI = ["iao","uai","ʉai","aai","aao","ɔɔy","ɔɔ","ɛɛ","ʉʉ","əə","aa","ii","uu","ee","oo","ia","ʉa","ua","ai","ao","eo","iu","a","i","u","e","ɛ","o","ɔ","ʉ","ə"];
+const FINALS = ["ng","n","m","k","t","p","w","y"];
+const TONES = [
+  {en:"mid",     my:"အလယ်",   mark:"",   path:"M3 12 L37 12"},
+  {en:"low",     my:"အနိမ့်",  mark:"̀",  path:"M3 15 L37 19"},
+  {en:"falling", my:"အကျ",     mark:"̂",  path:"M3 11 Q16 2 37 20"},
+  {en:"high",    my:"အမြင့်",  mark:"́",  path:"M3 9 Q22 11 37 3"},
+  {en:"rising",  my:"အတက်",   mark:"̌",  path:"M3 14 Q15 22 37 3"},
+];
+const toneSvg = t => `<svg viewBox="0 0 40 24" aria-hidden="true"><path d="${TONES[t].path}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
+const toneBadge = t => `<span class="tone" style="--tc:var(--t${t})">${toneSvg(t)}${TONES[t].en} · <span class="my">${TONES[t].my}</span></span>`;
+
+function parseSyl(tok){
+  const m = tok.match(/^(.*?)([0-4])$/); if (!m) return null;
+  let body = m[1], tone = +m[2], on = "";
+  for (const o of ONSETS) if (body.startsWith(o) && body.length > o.length) { on = o; break; }
+  body = body.slice(on.length);
+  let nu = NUCLEI.find(n => body.startsWith(n)) || body;
+  let fi = body.slice(nu.length);
+  if (fi && !FINALS.includes(fi)) { nu = body; fi = ""; }
+  return {on, nu, fi, tone, raw: tok};
+}
+const sylsOf = s => s.split(/\s+/).filter(Boolean).map(parseSyl).filter(Boolean);
+
+// English-friendly letters: ɔ→aw, ɛ→ae, ʉ→ue, ə→oe; tone accent on the first vowel letter
+function romanSyl(p){
+  let v = p.nu.replace("ʉai","ueai").replace("ʉa","uea").replace("ʉʉ","ue").replace("ʉ","ue")
+    .replace("əə","oe").replace("ə","oe").replace("ɔɔy","oy").replace("ɔɔ","aw").replace("ɔ","aw").replace("ɛɛ","ae").replace("ɛ","ae");
+  if (p.fi === "w" && /ae$|e$/.test(v)) v += "w"; else if (p.fi) v += p.fi;
+  if (p.fi === "w" && v.endsWith("ww")) v = v.slice(0, -1);
+  const s = p.on + v, mark = TONES[p.tone].mark;
+  const i = s.search(/[aeiou]/);
+  return mark && i >= 0 ? s.slice(0, i + 1) + mark + s.slice(i + 1) : s;
+}
+const roman = (syl, sep = "-") => sylsOf(syl).map(romanSyl).join(sep).normalize("NFC");
+
+// Burmese letters for the same sounds. Burmese has no Thai tones, so tones are shown separately.
+const MY_ON = {"":"အ",k:"က",kh:"ခ",ng:"င",j:"ကျ",ch:"ချ",s:"ဆ",y:"ယ",d:"ဒ",t:"တ",th:"ထ",n:"န",b:"ဘ",p:"ပ",ph:"ဖ",f:"ဖ",m:"မ",r:"ရ",l:"လ",w:"ဝ",h:"ဟ"};
+const ROUND = "ခဂငဒပဝ";
+function myOnset(on){
+  if (MY_ON[on] !== undefined) return MY_ON[on];
+  const last = on.slice(-1), first = MY_ON[on.slice(0, -1)];
+  if (last === "w") return first + "ွ";
+  return first + (last === "r" ? "ရ" : "လ");
+}
+function burmeseSyl(p){
+  const base = myOnset(p.on);
+  const round = ROUND.includes(base) ? true : false;
+  const R = x => round ? x.replace(/ာ/g, "ါ") : x;
+  const n = p.nu, f = p.fi;
+  const grp = ["a","aa","ə","əə"].includes(n) ? "A" : ["i","ii"].includes(n) ? "I" : ["u","uu","ʉ","ʉʉ"].includes(n) ? "U"
+    : ["e","ee","ɛ","ɛɛ"].includes(n) ? "E" : ["o","oo"].includes(n) ? "O" : ["ɔ","ɔɔ"].includes(n) ? "AW" : n;
+  let s;
+  if (["n","ng","m"].includes(f)) s = {A: f === "m" ? "မ်" : "န်", I:"င်", U:"ွန်", E:"ိန်", O:"ုန်", AW:R("ောင်"), ia:"ီယန်", "ʉa":"ူအန်", ua:"ွမ်"}[grp];
+  else if (["k","t","p"].includes(f)) s = {A:"တ်", I:"စ်", U:"ွတ်", E:"က်", O:"ုတ်", AW:R("ောက်"), ia:"ီယက်", "ʉa":"ူအက်", ua:"ွတ်"}[grp];
+  else if (f === "w") s = {A:R("ော"), E:"ယ်", I:"ီအူ"}[grp];
+  else if (f === "y") s = {A:"ိုင်", AW:"ွိုင်", O:"ွိုင်", U:"ုယ်"}[grp];
+  if (s === undefined) s = {a:"", "ə":"", aa:R("ာ"), "əə":R("ာ"), i:"ိ", ii:"ီ", u:"ု", uu:"ူ", "ʉ":"ု", "ʉʉ":"ူ", e:"ေ့", ee:"ေ",
+    "ɛ":"ဲ", "ɛɛ":"ယ်", o:"ို့", oo:"ို", "ɔ":R("ော့"), "ɔɔ":R("ော"), ia:"ီယာ", "ʉa":"ူအာ", ua:"ွာ", ai:"ိုင်", aai:"ိုင်",
+    ao:R("ော"), aao:R("ော"), iao:"ီယော", uai:"ွယ်", "ʉai":"ူအိုင်", "ɔɔy":"ွိုင်", eo:"ေ", iu:"ီအူ"}[n] ?? "";
+  if (base.endsWith("ွ") && s.startsWith("ွ")) s = s.slice(1);
+  return base + s;
+}
+const burmese = (syl, sep = "") => sylsOf(syl).map(burmeseSyl).join(sep);
+
+/* ================= SPEECH ================= */
+let thVoice = null, voicesChecked = false;
+function loadVoices(){
+  if (!("speechSynthesis" in window)) return;
+  const vs = speechSynthesis.getVoices();
+  if (vs.length) voicesChecked = true;
+  thVoice = vs.find(v => /^th(-|_|$)/i.test(v.lang)) || null;
+}
+if ("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged = () => { loadVoices(); if (view === "sounds" || view === "me") render(); }; }
+function speak(text, slow){
+  if (!("speechSynthesis" in window)){ toast("This browser can't play audio · ဒီဘရောက်ဇာမှာ အသံ မရပါ"); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/ฯ/g, ""));
+  u.lang = "th-TH"; if (thVoice) u.voice = thVoice;
+  u.rate = slow ? 0.55 : (P.rate || 0.85);
+  speechSynthesis.speak(u);
+}
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function listenThai(onText, onEnd){
+  const r = new SR(); r.lang = "th-TH"; r.interimResults = false; r.maxAlternatives = 4;
+  r.onresult = e => onText([...e.results[0]].map(a => a.transcript));
+  r.onerror = e => { if (e.error === "not-allowed") toast("Allow the microphone to practise speaking · မိုက်ခရိုဖုန်း ခွင့်ပြုပါ"); };
+  r.onend = onEnd; r.start(); return r;
+}
+const normTh = s => s.replace(/[\s.,!?ๆฯ]/g, "");
+function similar(a, b){
+  a = normTh(a); b = normTh(b); if (!a || !b) return 0; if (a.includes(b) || b.includes(a)) return 1;
+  const m = Array.from({length: a.length + 1}, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) m[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    m[i][j] = Math.min(m[i-1][j] + 1, m[i][j-1] + 1, m[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return 1 - m[a.length][b.length] / Math.max(a.length, b.length);
+}
+
+/* ================= THAI NUMBERS ================= */
+const NW = [["ศูนย์","suun4"],["หนึ่ง","nʉng1"],["สอง","sɔɔng4"],["สาม","saam4"],["สี่","sii1"],["ห้า","haa2"],["หก","hok1"],["เจ็ด","jet1"],["แปด","pɛɛt1"],["เก้า","kao2"]];
+const PLACES = [["",""],["สิบ","sip1"],["ร้อย","rɔɔy3"],["พัน","phan0"],["หมื่น","mʉʉn1"],["แสน","sɛɛn4"]];
+function thaiNumber(n){
+  if (n === 0) return {th: NW[0][0], syl: NW[0][1]};
+  if (n >= 1e6){ const a = thaiNumber(Math.floor(n / 1e6)), b = n % 1e6 ? thaiNumber(n % 1e6) : {th:"", syl:""}; return {th: a.th + "ล้าน" + b.th, syl: (a.syl + " laan3 " + b.syl).trim()}; }
+  const ds = String(n).split("").map(Number), L = ds.length; let th = "", syl = [];
+  ds.forEach((d, i) => {
+    const place = L - 1 - i; if (!d) return;
+    if (place === 1){ if (d === 2){ th += "ยี่"; syl.push("yii2"); } else if (d !== 1){ th += NW[d][0]; syl.push(NW[d][1]); } th += "สิบ"; syl.push("sip1"); return; }
+    if (place === 0 && d === 1 && L > 1){ th += "เอ็ด"; syl.push("et1"); return; }
+    th += NW[d][0]; syl.push(NW[d][1]);
+    if (place > 1){ th += PLACES[place][0]; syl.push(PLACES[place][1]); }
+  });
+  return {th, syl: syl.join(" ")};
+}
+const thaiDigits = n => String(n).replace(/\d/g, d => "๐๑๒๓๔๕๖๗๘๙"[d]);
+
+/* ================= PROGRESS & ACCOUNTS =================
+   P is everything we save. Accounts: Google (follows you everywhere), a study code (type it on any phone),
+   or this device only. Firebase paths: sabai-thai-users/<uid>/data/progress and sabai-thai/<CODE>/data/progress. */
+const DEFAULTS = () => ({v:1, created:Date.now(), updated:0, xp:0, goal:60, newPerDay:8, rate:0.85, showRom:true, showMy:true,
+  days:{}, streak:{last:"", n:0}, newDay:{d:"", n:0}, cards:{}, tones:{r:0, t:0}, letters:{r:0, t:0}, nums:{r:0, t:0}, speak:{r:0, t:0}, focus:"all"});
+let P = DEFAULTS(), ACC = null, NET = null, remote = null, saveTimer = null;
+const accKey = a => a ? "sabai.p." + a.mode + "." + (a.code || a.uid || "local") : "sabai.p.none";
+function merge(d){ const p = Object.assign(DEFAULTS(), d || {}); ["tones","letters","nums","speak","streak","newDay"].forEach(k => p[k] = Object.assign(DEFAULTS()[k], p[k] || {})); p.cards = p.cards || {}; p.days = p.days || {}; return p; }
+function setSync(t){ const el = $("#sync"); el.textContent = t.split(" ")[0]; el.title = t; }
+function save(){
+  P.updated = Date.now();
+  const keys = Object.keys(P.days).sort(); if (keys.length > 150) keys.slice(0, keys.length - 150).forEach(k => delete P.days[k]);
+  ls.set(accKey(ACC), JSON.stringify(P));
+  if (!remote) return;
+  clearTimeout(saveTimer); setSync("…");
+  saveTimer = setTimeout(flush, 1500);
+}
+function flush(){
+  if (!remote) return; clearTimeout(saveTimer); saveTimer = null;
+  remote.set(JSON.parse(JSON.stringify(P))).then(() => setSync("✓ saved · သိမ်းပြီး"), e => { setSync("offline"); console.warn(e); if (e.code === "permission-denied") toast("Firestore rules need the sabai-thai block · Firestore rules ကို အပ်ဒိတ်လုပ်ပါ"); });
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden && saveTimer) flush(); });
+
+async function loadNet(){
+  if (location.protocol === "file:") return null;
+  try { const m = await import("../shared/net.js"); return m.configured() ? m : null; } catch (e) { return null; }
+}
+async function openAccount(acc){
+  ACC = acc; remote = null;
+  const local = (() => { try { return JSON.parse(ls.get(accKey(acc)) || "null"); } catch (e) { return null; } })();
+  P = merge(local);
+  if (acc.mode !== "local" && NET){
+    setSync("…");
+    try {
+      const path = acc.mode === "google" ? `sabai-thai-users/${acc.uid}` : `sabai-thai/${acc.code}`;
+      remote = (await NET.store(path)).doc("data/progress");
+      const sn = await remote.get();
+      const d = sn.exists ? sn.data() : null;
+      if (d && (d.updated || 0) >= (P.updated || 0)) P = merge(d);
+      else if (!d || (P.updated || 0) > (d.updated || 0)) await remote.set(JSON.parse(JSON.stringify(P)));
+      setSync("✓");
+    } catch (e) {
+      setSync("offline"); console.warn(e);
+      toast(e.code === "permission-denied" ? "Firestore rules need the sabai-thai block · Firestore rules ကို အပ်ဒိတ်လုပ်ပါ" : "Saved on this phone only for now · ယခု ဒီဖုန်းမှာပဲ သိမ်းထားတယ်");
+    }
+  }
+  ls.set("sabai.acc", JSON.stringify(acc));
+  view = location.hash.slice(1) || "learn"; if (!VIEWS[view]) view = "learn";
+  render();
+}
+function addXP(n){
+  const t = todayKey();
+  P.xp += n; P.days[t] = (P.days[t] || 0) + n;
+  if (P.streak.last !== t){ P.streak.n = P.streak.last === todayKey(Date.now() - DAY) ? P.streak.n + 1 : 1; P.streak.last = t; }
+  save(); renderTop();
+}
+function renderTop(){
+  const t = todayKey(), x = P.days[t] || 0;
+  const alive = P.streak.last === t || P.streak.last === todayKey(Date.now() - DAY);
+  $("#streak").textContent = "🔥 " + (alive ? P.streak.n : 0);
+  $("#xp").textContent = x + "/" + P.goal;
+  $("#ring").style.setProperty("--p", Math.min(100, x / P.goal * 100));
+}
+
+/* ================= SPACED REPETITION =================
+   Each word has a box 0–7. A right answer moves it up one box and schedules the next review
+   further away; a wrong answer sends it back to box 1. */
+const INTERVALS = [0, 1, 2, 4, 7, 15, 30, 60].map(d => d * DAY);
+const WORDS = D.words, BY_TH = Object.fromEntries(WORDS.map(w => [w.th, w]));
+const card = th => P.cards[th];
+const learned = th => (card(th) && card(th).b >= 3);
+function grade(th, ok){
+  const c = P.cards[th] || (P.cards[th] = {b:0, r:0, w:0, d:0});
+  if (ok){ c.b = Math.min(7, c.b + 1); c.r++; c.d = Date.now() + INTERVALS[c.b]; }
+  else { c.b = 1; c.w++; c.d = Date.now() + 10 * 60 * 1000; }
+  addXP(ok ? 10 : 2);
+}
+function dueList(){ const now = Date.now(); return Object.keys(P.cards).filter(k => BY_TH[k] && P.cards[k].d <= now).sort((a, b) => P.cards[a].d - P.cards[b].d); }
+function newLeft(){ const t = todayKey(); return Math.max(0, P.newPerDay - (P.newDay.d === t ? P.newDay.n : 0)); }
+function freshWords(){ const pool = P.focus === "all" ? WORDS : WORDS.filter(w => w.cat === P.focus); return pool.filter(w => !P.cards[w.th]); }
+
+let S = null; // the lesson in progress
+function startLesson(kind){
+  const due = dueList().slice(0, 14);
+  let items = [];
+  if (kind === "listen" || kind === "speak"){
+    const seen = shuffle(Object.keys(P.cards).filter(k => BY_TH[k])).slice(0, 10);
+    if (seen.length < 4){ toast("Learn a few words first · စကားလုံးအချို့ အရင်သင်ပါ"); return; }
+    items = seen.map(th => ({th, type: kind === "speak" ? "speak" : "listen"}));
+  } else {
+    due.forEach(th => items.push({th, type: reviewType()}));
+    const nn = Math.min(newLeft(), Math.max(0, 16 - due.length));
+    const fresh = freshWords().slice(0, nn);
+    fresh.forEach(w => items.push({th: w.th, type: "new"}));
+    fresh.forEach(w => items.push({th: w.th, type: pick(["listen", "pickthai"]), learnQuiz: true}));
+    if (!items.length){
+      const seen = shuffle(Object.keys(P.cards).filter(k => BY_TH[k])).slice(0, 10);
+      if (!seen.length){ toast("No new words left in this topic · ဒီခေါင်းစဉ်မှာ စကားလုံးအသစ် မကျန်တော့ပါ"); return; }
+      items = seen.map(th => ({th, type: reviewType()}));
+    }
+    const head = items.filter(i => !i.learnQuiz), tail = shuffle(items.filter(i => i.learnQuiz));
+    items = head.concat(tail);
+  }
+  S = {items, i:0, right:0, wrong:0, xp0: P.xp, retried:{}};
+  render();
+}
+function reviewType(){ const r = Math.random(); return SR && r < .1 ? "speak" : r < .45 ? "flip" : r < .75 ? "listen" : "pickthai"; }
+function options(w, n = 4){
+  const same = shuffle(WORDS.filter(x => x.cat === w.cat && x.th !== w.th && x.my !== w.my));
+  const other = shuffle(WORDS.filter(x => x.cat !== w.cat && x.th !== w.th));
+  return shuffle([w, ...same.concat(other).slice(0, n - 1)]);
+}
+function answer(ok){
+  const it = S.items[S.i];
+  if (it.type === "new"){
+    P.cards[it.th] = P.cards[it.th] || {b:0, r:0, w:0, d:Date.now()};
+    const t = todayKey(); P.newDay = P.newDay.d === t ? {d:t, n:P.newDay.n + 1} : {d:t, n:1};
+    addXP(3);
+  } else {
+    grade(it.th, ok);
+    ok ? S.right++ : S.wrong++;
+    if (!ok && !S.retried[it.th]){ S.retried[it.th] = 1; S.items.push({th: it.th, type: "flip"}); }
+  }
+  S.i++; S.answered = null; S.revealed = false; S.heard = null; S.autoplayed = false;
+  render();
+}
+
+/* ================= VIEWS ================= */
+const VIEWS = {
+  learn:   {i:"📖", en:"Learn",    my:"လေ့လာ"},
+  words:   {i:"🔎", en:"Words",    my:"စကားလုံး"},
+  phrases: {i:"💬", en:"Phrases",  my:"စကားစု"},
+  sounds:  {i:"🎵", en:"Sounds",   my:"အသံ"},
+  me:      {i:"📈", en:"Progress", my:"တိုးတက်မှု"},
+};
+let view = "learn", sub = ls.get("sabai.sub") || "tones";
+let wq = "", wcat = "all", wopen = null, toneGame = null, letterSel = null, letterCls = "all", numGame = null, mic = null;
+
+function renderTabs(){
+  const html = Object.entries(VIEWS).map(([k, v]) => `<button data-tab="${k}" ${view === k ? 'aria-current="page"' : ""}><span class="i">${v.i}</span><span>${v.en}</span><span class="my">${v.my}</span></button>`).join("");
+  $("#tabsTop").innerHTML = html; $("#tabsBottom").innerHTML = html;
+  document.querySelectorAll(".tabbar,.toptabs").forEach(n => n.hidden = !ACC);
+}
+function render(){
+  renderTabs(); renderTop();
+  const v = $("#view");
+  if (!ACC){ v.innerHTML = loginView(); return; }
+  v.innerHTML = {learn: learnView, words: wordsView, phrases: phrasesView, sounds: soundsView, me: meView}[view]();
+  if (view === "learn" && S && S.items[S.i] && !S.autoplayed){ const it = S.items[S.i]; S.autoplayed = true; if (["new","listen","flip"].includes(it.type)) setTimeout(() => speak(it.th), 250); }
+  if (view === "words") renderWordList();
+}
+
+/* ---------- login ---------- */
+let loginStep = null, newCode = null;
+function loginView(){
+  const online = !!NET;
+  if (loginStep === "newcode") return `<div class="login">
+    <h2>Your study code · <span class="my">သင့် လေ့လာရေးကုဒ်</span></h2>
+    <div class="codebox">${newCode.slice(0,4)}-${newCode.slice(4)}</div>
+    <p class="my" style="margin:0">ဒီကုဒ်ကို မှတ်ထားပါ (screenshot ရိုက်ထားပါ)။ ဘယ်ဖုန်းမှာမဆို ဒီကုဒ်ရိုက်ထည့်ရင် သင့်တိုးတက်မှုကို ပြန်ဖွင့်နိုင်ပါတယ်။</p>
+    <p style="margin:0" class="small">Write this code down or take a screenshot. Type it on any phone to open your progress.</p>
+    <button class="btn big" data-act="usecode" data-code="${newCode}">Start learning<span class="my">စလေ့လာမယ်</span></button>
+    <button class="btn ghost" data-act="loginback">Back<span class="my">နောက်သို့</span></button></div>`;
+  return `<div class="login">
+    <div class="th-hero">ภาษาไทย</div>
+    <h1>Sabai Thai</h1>
+    <p class="lead my" style="margin:0">မြန်မာလို ထိုင်းစကား လေ့လာမယ်။ အသံထွက်၊ အနိမ့်အမြင့်၊ အက္ခရာနဲ့ နေ့စဉ်သုံး စကားစုတွေ။</p>
+    <p class="small" style="margin:0">Learn Thai from Burmese: Thai audio, Burmese and English sounds, tones, letters and everyday phrases.</p>
+    ${online ? `
+    <button class="btn big" data-act="google">Sign in with Google<span class="my">Google နဲ့ ဝင်မယ်</span></button>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <h3>Study code · <span class="my">လေ့လာရေးကုဒ်</span></h3>
+      <p class="small" style="margin:0">No email needed. The code opens your progress on any phone. · <span class="my">အီးမေးလ် မလိုပါ။</span></p>
+      <div class="row"><input id="codein" maxlength="9" placeholder="ABCD-EFGH" autocomplete="off" aria-label="Study code"><button class="btn" data-act="entercode">Open<span class="my">ဖွင့်မယ်</span></button></div>
+      <button class="btn ghost" data-act="makecode">Create a new code<span class="my">ကုဒ်အသစ် ဖန်တီးမယ်</span></button>
+    </div>` : `<p class="note">Online accounts work on the PuzzleGekko website. Here progress is saved on this device. · <span class="my">ဒီမှာ ဒီစက်ထဲမှာပဲ သိမ်းပါမယ်။</span></p>`}
+    <button class="btn ghost" data-act="local">Only on this phone<span class="my">ဒီဖုန်းမှာပဲ သုံးမယ်</span></button>
+  </div>`;
+}
+
+/* ---------- learn ---------- */
+function wordBlock(w, opts = {}){
+  const syl = sylsOf(w.syl);
+  return `<div class="thai-big">${esc(w.th)}</div>
+    ${P.showRom ? `<div class="rom" style="font-size:20px">${roman(w.syl)}</div>` : ""}
+    ${P.showMy ? `<div class="mys" style="font-size:20px">${burmese(w.syl)}</div>` : ""}
+    <div class="syls">${syl.map(p => `<div class="syl" style="--tc:var(--t${p.tone})"><span class="r" style="color:var(--t${p.tone})">${romanSyl(p).normalize("NFC")}</span><span class="m">${burmeseSyl(p)}</span>${toneBadge(p.tone)}</div>`).join("")}</div>
+    ${opts.noMeaning ? "" : `<div><div class="mean">${esc(w.my)}</div><div class="mean-en">${esc(w.en)}</div></div>`}`;
+}
+const playRow = th => `<div class="row" style="justify-content:center"><button class="icon on" data-say="${esc(th)}" aria-label="Play">🔊</button><button class="icon" data-say="${esc(th)}" data-slow="1" aria-label="Play slowly">🐢</button></div>`;
+function learnView(){
+  if (S && S.i < S.items.length) return lessonView();
+  if (S){ const xp = P.xp - S.xp0, tot = S.right + S.wrong; const res = `<div class="qcard"><div style="font-size:54px">🎉</div><h2>Lesson complete · <span class="my">သင်ခန်းစာ ပြီးပါပြီ</span></h2>
+      <div class="stats" style="width:100%"><div class="stat"><b>${S.right}/${tot}</b><span>correct · <span class="my">မှန်</span></span></div><div class="stat"><b>+${xp}</b><span>XP</span></div><div class="stat"><b>🔥 ${P.streak.n}</b><span>streak · <span class="my">ရက်ဆက်</span></span></div></div>
+      <button class="btn big" data-act="done">Continue<span class="my">ဆက်သွားမယ်</span></button></div>`; return res; }
+  const t = todayKey(), x = P.days[t] || 0, due = dueList().length, nl = Math.min(newLeft(), freshWords().length);
+  const total = WORDS.length, lw = WORDS.filter(w => learned(w.th)).length;
+  const wotd = WORDS[(Math.floor(Date.now() / DAY) * 37) % WORDS.length];
+  const cats = [{k:"all", en:"Everything in order", my:"အစဉ်လိုက်", ic:"📚"}, ...D.cats];
+  return `<section class="card hero"><div class="bigring" style="--p:${Math.min(100, x / P.goal * 100)}"><div>${x}<small>/ ${P.goal} XP</small></div></div>
+      <div><h2>${x >= P.goal ? "Goal reached! · " : "Today · "}<span class="my">${x >= P.goal ? "ဒီနေ့ ပန်းတိုင် ပြည့်ပြီ" : "ဒီနေ့"}</span></h2>
+      <p class="small" style="margin:4px 0 0">${due} to review · <span class="my">ပြန်လေ့ကျင့်ရန် ${due}</span> · ${nl} new · <span class="my">အသစ် ${nl}</span></p></div></section>
+    <button class="btn big" data-act="start">${due || nl ? "Start lesson" : "Extra practice"}<span class="my">${due || nl ? "သင်ခန်းစာ စမယ်" : "ထပ်လေ့ကျင့်မယ်"}</span></button>
+    <div class="grid2"><button class="btn ghost" data-act="drill" data-kind="listen">👂 Listening drill<span class="my">နားထောင်လေ့ကျင့်</span></button>
+      ${SR ? `<button class="btn ghost" data-act="drill" data-kind="speak">🎙️ Speaking drill<span class="my">ပြောလေ့ကျင့်</span></button>` : `<button class="btn ghost" data-tab="sounds">🎵 Tone trainer<span class="my">အသံနိမ့်မြင့်</span></button>`}</div>
+    <section class="card"><h3>New words from · <span class="my">စကားလုံးအသစ် ခေါင်းစဉ်</span></h3>
+      <div class="topicpick" style="margin-top:10px">${cats.map(c => { const n = c.k === "all" ? null : c.words.filter(w => learned(w.th)).length + "/" + c.words.length;
+        return `<button class="chip" data-focus="${c.k}" aria-pressed="${P.focus === c.k}">${c.ic} ${c.en} · <span class="my">${c.my}</span>${n ? ` <small>${n}</small>` : ""}</button>`; }).join("")}</div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center">
+      <div class="qkind">Word of the day · <span class="my">ဒီနေ့ စကားလုံး</span></div>${wordBlock(wotd)}${playRow(wotd.th)}</section>
+    <section class="stats"><div class="stat"><b>${lw}</b><span>learned · <span class="my">သင်ပြီး</span></span></div><div class="stat"><b>${Object.keys(P.cards).length}</b><span>started · <span class="my">စသင်</span></span></div><div class="stat"><b>${total}</b><span>in course · <span class="my">စုစုပေါင်း</span></span></div></section>`;
+}
+function lessonView(){
+  const it = S.items[S.i], w = BY_TH[it.th], pct = S.i / S.items.length * 100;
+  let body = "";
+  const kind = (en, my) => `<div class="qkind">${en} · <span class="my">${my}</span></div>`;
+  if (it.type === "new"){
+    body = `${kind("New word", "စကားလုံးအသစ်")}${wordBlock(w)}${playRow(w.th)}
+      <button class="btn big" data-act="next">Got it<span class="my">မှတ်မိပြီ</span></button>`;
+  } else if (it.type === "flip"){
+    body = `${kind("Do you know it?", "ဒါ ဘာလဲ သိလား")}${S.revealed ? wordBlock(w) : `<div class="thai-big">${esc(w.th)}</div>`}${playRow(w.th)}
+      ${S.revealed ? `<div class="ansrow"><button class="btn no" data-act="grade" data-ok="0">Didn't know<span class="my">မသိဘူး</span></button><button class="btn yes" data-act="grade" data-ok="1">I knew it<span class="my">သိတယ်</span></button></div>`
+        : `<button class="btn big" data-act="reveal">Show answer<span class="my">အဖြေကြည့်မယ်</span></button>`}`;
+  } else if (it.type === "listen"){
+    S.opts = S.opts && S.opts.key === it.th + S.i ? S.opts : {key: it.th + S.i, list: options(w)};
+    body = `${kind("Listen. What does it mean?", "နားထောင်ပါ။ ဘာအဓိပ္ပာယ်လဲ")}
+      <button class="mic" style="background:var(--teal)" data-say="${esc(w.th)}" aria-label="Play again">🔊</button>
+      ${S.answered != null ? `<div class="thai-md">${esc(w.th)}</div><div class="rom">${roman(w.syl)}</div>` : ""}
+      <div class="opts">${S.opts.list.map(o => `<button class="opt ${S.answered != null ? (o.th === w.th ? "ok" : o.th === S.answered ? "no" : "") : ""}" data-act="choose" data-th="${esc(o.th)}" ${S.answered != null ? "disabled" : ""}><span class="my">${esc(o.my)}</span><small>${esc(o.en)}</small></button>`).join("")}</div>
+      ${S.answered != null ? feedbackAndNext(S.answered === w.th) : ""}`;
+  } else if (it.type === "pickthai"){
+    S.opts = S.opts && S.opts.key === it.th + S.i ? S.opts : {key: it.th + S.i, list: options(w)};
+    body = `${kind("Which Thai word?", "ဘယ် ထိုင်းစကားလုံးလဲ")}
+      <div class="mean">${esc(w.my)}</div><div class="mean-en">${esc(w.en)}</div>
+      <div class="opts">${S.opts.list.map(o => `<button class="opt th ${S.answered != null ? (o.th === w.th ? "ok" : o.th === S.answered ? "no" : "") : ""}" data-act="choose" data-th="${esc(o.th)}" ${S.answered != null ? "disabled" : ""}>${esc(o.th)}${S.answered != null ? `<small style="font-family:var(--ui)">${roman(o.syl)}</small>` : ""}</button>`).join("")}</div>
+      ${S.answered != null ? feedbackAndNext(S.answered === w.th) : ""}`;
+  } else if (it.type === "speak"){
+    body = `${kind("Say it in Thai", "ထိုင်းလို ပြောကြည့်ပါ")}
+      <div class="mean">${esc(w.my)}</div><div class="mean-en">${esc(w.en)}</div>
+      ${S.heard ? wordBlock(w, {noMeaning:true}) : `<div class="small">Tap the microphone and speak · <span class="my">မိုက်ကို နှိပ်ပြီး ပြောပါ</span></div>`}
+      <button class="mic ${mic ? "rec" : ""}" data-act="mic" aria-label="Speak">🎙️</button>
+      ${S.heard ? `<div class="small">Heard · <span class="my">ကြားတာ</span>: <b class="th" style="font-size:18px">${esc(S.heard.text || "—")}</b></div>${feedbackAndNext(S.heard.ok)}` : ""}
+      <div class="row" style="justify-content:center">${playRow(w.th)}<button class="btn ghost sm" data-act="grade" data-ok="0">Skip<span class="my">ကျော်မယ်</span></button></div>`;
+  }
+  return `<div class="lesson"><div class="row" style="flex-wrap:nowrap"><button class="icon" data-act="quit" aria-label="Stop lesson">✕</button><div class="progress" style="flex:1"><i style="width:${pct}%"></i></div><small>${S.i + 1}/${S.items.length}</small></div>
+    <div class="qcard">${body}</div></div>`;
+}
+const feedbackAndNext = ok => `<div class="feedback ${ok ? "ok" : "no"}">${ok ? "Correct! · <span class='my'>မှန်တယ်</span>" : "Not quite · <span class='my'>မှားသွားတယ်</span>"}</div>
+  <button class="btn big" data-act="grade" data-ok="${ok ? 1 : 0}">Next<span class="my">ဆက်သွားမယ်</span></button>`;
+
+/* ---------- words ---------- */
+function wordsView(){
+  const cats = [{k:"all", en:"All", my:"အားလုံး", ic:"📚"}, ...D.cats];
+  return `<div class="search"><span>🔎</span><input id="wq" value="${esc(wq)}" placeholder="Thai, English or Burmese · ရှာမယ်" aria-label="Search words" autocomplete="off"></div>
+    <div class="chips">${cats.map(c => `<button class="chip" data-wcat="${c.k}" aria-pressed="${wcat === c.k}">${c.ic} ${c.en} · <span class="my">${c.my}</span></button>`).join("")}</div>
+    <div class="small" id="wcount"></div><div class="wlist" id="wlist"></div>
+    <p class="small my">မြန်မာအသံထွက်က အနီးစပ်ဆုံးသာ ဖြစ်ပါတယ်။ အမှန်ကို 🔊 နဲ့ နားထောင်ပါ။</p>
+    <p class="small" style="margin-top:-12px">Burmese and English spellings are close approximations. The audio is the real sound.</p>`;
+}
+function renderWordList(){
+  const q = wq.trim().toLowerCase();
+  const list = WORDS.filter(w => (wcat === "all" || w.cat === wcat) && (!q || w.th.includes(q) || w.en.toLowerCase().includes(q) || w.my.includes(q) || roman(w.syl).normalize("NFD").replace(/[̀-ͯ]/g, "").includes(q)));
+  $("#wcount").textContent = list.length + " words · စကားလုံး " + list.length;
+  $("#wlist").innerHTML = list.slice(0, 200).map(w => {
+    const c = card(w.th), b = c ? Math.min(c.b, 5) : 0;
+    return `<div class="witem"><button class="icon" data-say="${esc(w.th)}" aria-label="Play ${esc(w.en)}">🔊</button>
+      <button class="wopen" data-wopen="${esc(w.th)}"><span class="t">${esc(w.th)}</span><span class="r">${P.showRom ? `<span class="rom">${roman(w.syl)}</span>` : ""}${P.showMy ? ` · <span class="mys">${burmese(w.syl)}</span>` : ""}</span><span class="m">${esc(w.my)}</span><span class="e">${esc(w.en)}</span></button>
+      <div class="dots" title="Progress">${[1,2,3,4,5].map(i => `<i class="${i <= b ? "on" : ""}"></i>`).join("")}</div>
+      ${wopen === w.th ? `<div class="wdetail">${sylsOf(w.syl).length ? `<div class="syls">${sylsOf(w.syl).map(p => `<div class="syl"><span class="r" style="color:var(--t${p.tone})">${romanSyl(p).normalize("NFC")}</span><span class="m">${burmeseSyl(p)}</span>${toneBadge(p.tone)}</div>`).join("")}</div>` : ""}
+        <div class="row"><button class="btn sm" data-say="${esc(w.th)}" data-slow="1">🐢 Slowly<span class="my">ဖြည်းဖြည်း</span></button>${c ? `<small>${c.r} right · ${c.w} wrong</small>` : `<button class="btn sm ghost" data-act="addword" data-th="${esc(w.th)}">＋ Add to my lessons<span class="my">သင်ခန်းစာထဲ ထည့်မယ်</span></button>`}</div></div>` : ""}</div>`;
+  }).join("") || `<p class="small">Nothing found · <span class="my">မတွေ့ပါ</span></p>`;
+}
+
+/* ---------- phrases ---------- */
+function phrasesView(){
+  return `<p class="note"><b>For women:</b> end sentences with <b class="th">ค่ะ</b> (khâ) and questions with <b class="th">คะ</b> (khá). Men say <b class="th">ครับ</b>.<br><span class="my">အမျိုးသမီးများ စကားအဆုံးမှာ ค่ะ (ခ) ၊ မေးခွန်းအဆုံးမှာ คะ (ခ) လို့ ပြောပါတယ်။</span></p>` +
+  D.phrases.map(g => `<section class="card" style="display:flex;flex-direction:column;gap:10px"><h3>${g.ic} ${g.en} · <span class="my">${g.my}</span></h3><div class="plist">${g.items.map(p => `
+    <div class="phrase"><div class="t">${esc(p.th)}</div>
+      <div class="acts"><button class="icon on" data-say="${esc(p.th)}" aria-label="Play">🔊</button><button class="icon" data-say="${esc(p.th)}" data-slow="1" aria-label="Play slowly">🐢</button>${SR ? `<button class="icon" data-act="sayphrase" data-th="${esc(p.th)}" aria-label="Practise saying it">🎙️</button>` : ""}</div>
+      ${P.showRom ? `<div class="rom">${roman(p.syl, " ")}</div>` : ""}${P.showMy ? `<div class="mys">${burmese(p.syl, " ")}</div>` : ""}
+      <div><span class="my" style="font-size:15px">${esc(p.my)}</span> <small>${esc(p.en)}</small></div></div>`).join("")}</div></section>`).join("");
+}
+
+/* ---------- sounds: tones, letters, numbers ---------- */
+function soundsView(){
+  const tabs = [["tones","Tones","အသံနိမ့်မြင့်"],["letters","Letters","အက္ခရာ"],["numbers","Numbers","ဂဏန်း"]];
+  const voiceNote = voicesChecked && !thVoice ? `<p class="note">No Thai voice found on this device, so audio may be silent or sound foreign. Android: Settings → Text-to-speech → install Thai. iPhone: Settings → Accessibility → Spoken Content → Voices → Thai.<br><span class="my">ဒီစက်မှာ ထိုင်းအသံ မရှိသေးပါ။ ဆက်တင်ထဲမှာ ထိုင်း Text-to-speech အသံကို ထည့်ပါ။</span></p>` : "";
+  return `<div class="chips">${tabs.map(([k, en, my]) => `<button class="chip" data-sub="${k}" aria-pressed="${sub === k}">${en} · <span class="my">${my}</span></button>`).join("")}</div>${voiceNote}` +
+    ({tones: tonesView, letters: lettersView, numbers: numbersView}[sub] || tonesView)();
+}
+function tonesView(){
+  const pool = WORDS.filter(w => sylsOf(w.syl).length === 1).concat(D.toneSets.flatMap(s => s.items));
+  if (!toneGame) toneGame = {n:0, r:0, w: pick(pool), ans:null};
+  const g = toneGame, gt = sylsOf(g.w.syl)[0].tone;
+  return `<section class="card" style="display:flex;flex-direction:column;gap:12px">
+      <h3>Thai has 5 tones · <span class="my">ထိုင်းစကားမှာ အသံနိမ့်မြင့် ၅ မျိုး ရှိတယ်</span></h3>
+      <p class="small" style="margin:0">The same sound with a different tone is a different word. Burmese has tones too, but they are different. · <span class="my">အသံတူပေမဲ့ အနိမ့်အမြင့်ကွဲရင် အဓိပ္ပာယ် ကွဲတယ်။</span></p>
+      <div class="toneguide">${TONES.map((t, i) => `<div class="tg" style="--tc:var(--t${i});color:var(--t${i})">${toneSvg(i)}<b>${t.en}</b><span class="my">${t.my}</span><small>${["no mark","อ่ mai ek","อ้ mai tho","อ๊ mai tri","อ๋ mai jattawa"][i]}</small></div>`).join("")}</div>
+      <p class="small" style="margin:0">Marks don't map one-to-one: the tone also depends on the consonant class (see Letters). · <span class="my">အမှတ်အသားနဲ့ ဗျည်းအတန်းပေါ်မူတည်ပြီး အသံ ပြောင်းတယ်။</span></p></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
+      <div class="qkind">Tone game · <span class="my">အသံနိမ့်မြင့် ဂိမ်း</span> · ${g.r}/${g.n}</div>
+      <button class="mic" style="background:var(--teal)" data-say="${esc(g.w.th)}" aria-label="Play">🔊</button>
+      <p class="small" style="margin:0">Which tone do you hear? · <span class="my">ဘယ်အသံ ကြားလဲ</span></p>
+      <div class="tonebtns">${TONES.map((t, i) => `<button data-act="tone" data-t="${i}" style="--tc:var(--t${i})" class="${g.ans != null ? (i === gt ? "ok" : i === g.ans ? "no" : "") : ""}" ${g.ans != null ? "disabled" : ""}>${toneSvg(i)}<span>${t.en}</span><span class="my">${t.my}</span></button>`).join("")}</div>
+      ${g.ans != null ? `<div class="thai-md">${esc(g.w.th)}</div><div class="rom">${roman(g.w.syl)} · ${esc(g.w.en)}</div><div class="feedback ${g.ans === gt ? "ok" : "no"}">${g.ans === gt ? "Correct! · <span class='my'>မှန်တယ်</span>" : "It was " + TONES[gt].en + " · <span class='my'>" + TONES[gt].my + "</span>"}</div><button class="btn" data-act="tonenext">Next<span class="my">နောက်တစ်ခု</span></button>` : ""}
+      <small>All-time: ${P.tones.r}/${P.tones.t} right</small></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Same sound, new word · <span class="my">အသံတူ စကားလုံးကွဲ</span></h3>
+      ${D.toneSets.map(s => `<div class="tset">${s.items.map(x => { const t = sylsOf(x.syl)[0].tone; return `<button data-say="${esc(x.th)}" style="--tc:var(--t${t})"><span class="th">${esc(x.th)}</span><span class="rom" style="color:var(--t${t})">${roman(x.syl)}</span><small>${esc(x.en)}</small></button>`; }).join("")}</div>`).join("")}</section>`;
+}
+const CLS = {m:{en:"mid class", my:"အလယ်တန်း", v:"--mc"}, h:{en:"high class", my:"အမြင့်တန်း", v:"--hc"}, l:{en:"low class", my:"အနိမ့်တန်း", v:"--lc"}};
+function lettersView(){
+  const list = D.consonants.filter(c => letterCls === "all" || c.cls === letterCls);
+  const sel = letterSel && D.consonants.find(c => c.ch === letterSel);
+  const sound = c => c.ini ? `${c.ini} · <span class="my">${MY_ON[c.ini] ?? myOnset(c.ini)}</span>` : "vowel carrier · <span class='my'>သရ ထိုင်ခုံ</span>";
+  return `<section class="card" style="display:flex;flex-direction:column;gap:10px">
+      <h3>44 consonants in 3 classes · <span class="my">ဗျည်း ၄၄ လုံး၊ အတန်း ၃ တန်း</span></h3>
+      <p class="small" style="margin:0">Each letter has a name word, like ก ไก่ "k for chicken". The class decides the tone. Tap a letter to hear it. · <span class="my">အက္ခရာကို နှိပ်ပြီး နားထောင်ပါ။</span></p>
+      <div class="legend">${Object.values(CLS).map(c => `<span style="--cc:var(${c.v})"><i></i>${c.en} · <span class="my">${c.my}</span></span>`).join("")}</div>
+      <div class="chips">${[["all","All","အားလုံး"],["m","Mid","အလယ်"],["h","High","အမြင့်"],["l","Low","အနိမ့်"]].map(([k, en, my]) => `<button class="chip" data-lcls="${k}" aria-pressed="${letterCls === k}">${en} · <span class="my">${my}</span></button>`).join("")}</div>
+      ${sel ? `<div class="note" style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center"><div class="th" style="font-size:64px;font-weight:700;color:var(${CLS[sel.cls].v});line-height:1.1">${sel.ch}</div>
+        <div><div class="thai-md">${sel.ch === "อ" ? "ออ" : sel.ch + "อ"} ${esc(sel.word)}</div><div>${esc(sel.en)} · <span class="my">${esc(sel.my)}</span></div>
+        <div class="small">Start sound: <b>${sound(sel)}</b>${sel.fin ? ` · as a final: <b>-${sel.fin}</b>` : ""} · ${CLS[sel.cls].en} · <span class="my">${CLS[sel.cls].my}</span></div></div></div>` : ""}
+      <div class="letters">${list.map(c => `<button class="letter" style="--cc:var(${CLS[c.cls].v})" data-letter="${c.ch}" aria-pressed="${letterSel === c.ch}"><span class="th">${c.ch}</span><small class="th">${esc(c.word)}</small><small>${c.ini || "–"}</small></button>`).join("")}</div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Vowels · <span class="my">သရ</span></h3>
+      <p class="small" style="margin:0">Shown on the carrier letter อ. Vowels can sit before, after, above or below a consonant. · <span class="my">သရတွေက ဗျည်းရဲ့ ရှေ့၊ နောက်၊ အပေါ်၊ အောက်မှာ ရှိနိုင်တယ်။</span></p>
+      <div class="vowels">${D.vowels.map(v => `<button class="vowel" data-say="${esc(v.th)}"><span class="th">${esc(v.th)}</span><span class="rom">${roman(v.syl.includes("0") ? v.syl : v.syl + "0")}</span><span class="mys" style="font-size:13px">${burmese(v.syl + "0")}</span><small>${esc(v.en)}</small></button>`).join("")}</div></section>`;
+}
+function numbersView(){
+  if (!numGame) numGame = newNum(1);
+  const g = numGame, w = thaiNumber(g.n);
+  return `<section class="card" style="display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center">
+      <div class="qkind">Market prices · <span class="my">ဈေးနှုန်း နားထောင်</span> · ${P.nums.r}/${P.nums.t}</div>
+      <div class="chips">${[[1,"1–10"],[2,"11–99"],[3,"100–999"],[4,"1,000+"]].map(([l, t]) => `<button class="chip" data-numlvl="${l}" aria-pressed="${g.lvl === l}">${t}</button>`).join("")}</div>
+      <button class="mic" style="background:var(--gold);color:#2b1a00" data-say="${esc(w.th + " บาท")}" aria-label="Play price">🔊</button>
+      <p class="small" style="margin:0">Type the price you hear · <span class="my">ကြားတဲ့ ဈေးနှုန်းကို ရိုက်ပါ</span></p>
+      <input class="numin" id="numin" inputmode="numeric" autocomplete="off" aria-label="Price in baht" ${g.done ? "disabled" : ""} value="${g.done ? esc(g.typed) : ""}">
+      ${g.done ? `<div class="feedback ${g.ok ? "ok" : "no"}">${g.ok ? "Correct! · <span class='my'>မှန်တယ်</span>" : "It was " + g.n.toLocaleString("en-US") + " · <span class='my'>အဖြေ " + g.n + "</span>"}</div>
+        <div class="thai-md">${esc(w.th)} บาท</div><div class="rom">${roman(w.syl + " baat1", " ")}</div><div class="mys">${burmese(w.syl + " baat1", " ")}</div>
+        <button class="btn" data-act="numnext">Next<span class="my">နောက်တစ်ခု</span></button>` : `<button class="btn" data-act="numcheck">Check<span class="my">စစ်မယ်</span></button>`}</section>
+    <section class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Thai digits · <span class="my">ထိုင်းဂဏန်း</span></h3>
+      <div class="digits">${NW.map(([th, syl], i) => `<button class="digit" data-say="${th}"><span class="th">${thaiDigits(i)}</span><b>${i}</b><span class="th">${th}</span><span class="rom" style="font-size:12px">${roman(syl)}</span></button>`).join("")}</div>
+      <p class="small" style="margin:0">Big numbers: <span class="th">สิบ</span> 10 · <span class="th">ร้อย</span> 100 · <span class="th">พัน</span> 1,000 · <span class="th">หมื่น</span> 10,000 · <span class="th">แสน</span> 100,000 · <span class="th">ล้าน</span> 1,000,000. 21 is <span class="th">ยี่สิบเอ็ด</span> (yîi-sìp-èt). · <span class="my">၂၀ က ยี่สิบ၊ ၁ နဲ့ဆုံးရင် เอ็ด လို့ပြောတယ်။</span></p></section>`;
+}
+function newNum(lvl){ const r = {1:[1,10],2:[11,99],3:[100,999],4:[1000,99999]}[lvl]; let n = r[0] + Math.floor(Math.random() * (r[1] - r[0] + 1)); if (lvl >= 3 && Math.random() < .5) n = Math.round(n / 10) * 10; return {lvl, n, done:false}; }
+
+/* ---------- progress ---------- */
+function meView(){
+  const days = [...Array(14)].map((_, i) => { const t = Date.now() - (13 - i) * DAY; return {k: todayKey(t), d: new Date(t)}; });
+  const max = Math.max(P.goal, ...days.map(d => P.days[d.k] || 0));
+  const acc = o => o.t ? Math.round(o.r / o.t * 100) + "%" : "—";
+  const learnedN = WORDS.filter(w => learned(w.th)).length;
+  const who = ACC.mode === "google" ? `Google · ${esc(ACC.name || ACC.email || "")}` : ACC.mode === "code" ? `Study code · <b style="letter-spacing:.1em">${ACC.code.slice(0,4)}-${ACC.code.slice(4)}</b>` : "This phone only · <span class='my'>ဒီဖုန်းမှာပဲ</span>";
+  return `<section class="stats"><div class="stat"><b>🔥 ${P.streak.n}</b><span>day streak · <span class="my">ရက်ဆက်</span></span></div><div class="stat"><b>${learnedN}</b><span>words learned · <span class="my">သင်ပြီး စကားလုံး</span></span></div><div class="stat"><b>${P.xp}</b><span>total XP</span></div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Last 14 days · <span class="my">နောက်ဆုံး ၁၄ ရက်</span></h3>
+      <div class="days" role="img" aria-label="XP per day for the last 14 days">${days.map(d => { const v = P.days[d.k] || 0; return `<div class="${v >= P.goal ? "goal" : v ? "on" : ""}" style="height:${Math.max(4, v / max * 100)}%" title="${d.k}: ${v} XP"></div>`; }).join("")}</div>
+      <div class="daylab">${days.map(d => `<span>${d.d.getDate()}</span>`).join("")}</div>
+      <div class="legend"><span style="--cc:var(--teal)"><i></i>goal reached · <span class="my">ပန်းတိုင်ပြည့်</span></span><span style="--cc:var(--gold)"><i></i>practised · <span class="my">လေ့ကျင့်ခဲ့</span></span></div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Topics · <span class="my">ခေါင်းစဉ်များ</span></h3>
+      ${D.cats.map(c => { const n = c.words.filter(w => learned(w.th)).length; return `<div class="catrow"><span>${c.ic}</span><div><div>${c.en} · <span class="my">${c.my}</span></div><div class="bar"><i style="width:${n / c.words.length * 100}%"></i></div></div><small>${n}/${c.words.length}</small></div>`; }).join("")}</section>
+    <section class="stats"><div class="stat"><b>${acc(P.tones)}</b><span>tones · <span class="my">အသံ</span></span></div><div class="stat"><b>${acc(P.nums)}</b><span>numbers · <span class="my">ဂဏန်း</span></span></div><div class="stat"><b>${acc(P.speak)}</b><span>speaking · <span class="my">ပြော</span></span></div></section>
+    <section class="card"><h3>Settings · <span class="my">ဆက်တင်</span></h3>
+      <div class="setting"><span>Daily goal · <span class="my">နေ့စဉ် ပန်းတိုင်</span></span><select id="s-goal">${[30,60,100,150].map(v => `<option value="${v}" ${P.goal === v ? "selected" : ""}>${v} XP</option>`).join("")}</select></div>
+      <div class="setting"><span>New words a day · <span class="my">တစ်နေ့ စကားလုံးအသစ်</span></span><select id="s-new">${[4,8,12,20].map(v => `<option value="${v}" ${P.newPerDay === v ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+      <div class="setting"><span>Speech speed · <span class="my">အသံ အမြန်နှုန်း</span></span><select id="s-rate">${[[0.7,"slow"],[0.85,"normal"],[1,"fast"]].map(([v, n]) => `<option value="${v}" ${P.rate === v ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+      <div class="setting"><span>English letters · <span class="my">အင်္ဂလိပ် အသံထွက်</span></span><input type="checkbox" class="switch" id="s-rom" ${P.showRom ? "checked" : ""}></div>
+      <div class="setting"><span>Burmese letters · <span class="my">မြန်မာ အသံထွက်</span></span><input type="checkbox" class="switch" id="s-my" ${P.showMy ? "checked" : ""}></div>
+      <div class="setting"><span>Thai voice · <span class="my">ထိုင်းအသံ</span></span><small>${thVoice ? esc(thVoice.name) : voicesChecked ? "not installed · မရှိ" : "…"}</small></div></section>
+    <section class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Account · <span class="my">အကောင့်</span></h3><div>${who}</div>
+      <div class="row"><button class="btn ghost sm" data-act="switch">Switch account<span class="my">အကောင့်ပြောင်းမယ်</span></button>
+      ${confirmReset ? `<button class="btn sm no" data-act="reset2">Yes, erase everything<span class="my">ဖျက်မယ်</span></button><button class="btn ghost sm" data-act="reset0">Cancel</button>` : `<button class="btn ghost sm" data-act="reset">Reset progress<span class="my">တိုးတက်မှု ဖျက်မယ်</span></button>`}</div>
+      <a class="small" href="../">← PuzzleGekko</a></section>`;
+}
+let confirmReset = false;
+
+/* ================= EVENTS ================= */
+document.addEventListener("click", async e => {
+  const t = e.target.closest("[data-say],[data-tab],[data-act],[data-focus],[data-wcat],[data-wopen],[data-sub],[data-letter],[data-lcls],[data-numlvl]");
+  if (!t) return;
+  if (t.dataset.say){ speak(t.dataset.say, !!t.dataset.slow); if (!t.dataset.act) return; }
+  if (t.dataset.tab){ view = t.dataset.tab; history.replaceState(null, "", "#" + view); window.scrollTo(0, 0); render(); return; }
+  if (t.dataset.focus){ P.focus = t.dataset.focus; save(); render(); return; }
+  if (t.dataset.wcat){ wcat = t.dataset.wcat; render(); return; }
+  if (t.dataset.wopen){ wopen = wopen === t.dataset.wopen ? null : t.dataset.wopen; renderWordList(); if (wopen) speak(wopen); return; }
+  if (t.dataset.sub){ sub = t.dataset.sub; ls.set("sabai.sub", sub); render(); return; }
+  if (t.dataset.letter){ letterSel = t.dataset.letter; const c = D.consonants.find(x => x.ch === letterSel); speak((c.ch === "อ" ? "ออ" : c.ch + "อ") + " " + c.word); render(); return; }
+  if (t.dataset.lcls){ letterCls = t.dataset.lcls; render(); return; }
+  if (t.dataset.numlvl){ numGame = newNum(+t.dataset.numlvl); render(); speak(thaiNumber(numGame.n).th + " บาท"); return; }
+  const a = t.dataset.act;
+  if (a === "start") startLesson();
+  else if (a === "drill") startLesson(t.dataset.kind);
+  else if (a === "quit"){ S = null; render(); }
+  else if (a === "done"){ S = null; render(); }
+  else if (a === "next") answer(true);
+  else if (a === "reveal"){ S.revealed = true; render(); }
+  else if (a === "grade") answer(t.dataset.ok === "1");
+  else if (a === "choose"){ S.answered = t.dataset.th; const w = BY_TH[S.items[S.i].th]; speak(w.th); render(); }
+  else if (a === "mic") toggleMic(BY_TH[S.items[S.i].th].th, res => { S.heard = res; P.speak.t++; if (res.ok) P.speak.r++; save(); render(); });
+  else if (a === "sayphrase") toggleMic(t.dataset.th, res => { toast(res.ok ? "✅ Great! · <span class='my'>ကောင်းတယ်</span>" : "Heard: " + esc(res.text || "—") + " · <span class='my'>ထပ်ကြိုးစားပါ</span>"); P.speak.t++; if (res.ok) P.speak.r++; save(); });
+  else if (a === "addword"){ P.cards[t.dataset.th] = {b:0, r:0, w:0, d:Date.now()}; save(); renderWordList(); toast("Added · <span class='my'>ထည့်ပြီး</span>"); }
+  else if (a === "tone"){ const g = toneGame, ok = +t.dataset.t === sylsOf(g.w.syl)[0].tone; g.ans = +t.dataset.t; g.n++; if (ok) g.r++; P.tones.t++; if (ok){ P.tones.r++; addXP(5); } else save(); render(); }
+  else if (a === "tonenext"){ const pool = WORDS.filter(w => sylsOf(w.syl).length === 1).concat(D.toneSets.flatMap(s => s.items)); toneGame = {n: toneGame.n, r: toneGame.r, w: pick(pool), ans: null}; render(); speak(toneGame.w.th); }
+  else if (a === "numcheck"){ const v = parseInt(($("#numin").value || "").replace(/\D/g, ""), 10); numGame.typed = isNaN(v) ? "" : String(v); numGame.ok = v === numGame.n; numGame.done = true; P.nums.t++; if (numGame.ok){ P.nums.r++; addXP(5); } else save(); render(); }
+  else if (a === "numnext"){ numGame = newNum(numGame.lvl); render(); speak(thaiNumber(numGame.n).th + " บาท"); setTimeout(() => { const i = $("#numin"); if (i) i.focus(); }, 50); }
+  else if (a === "switch"){ flush(); ACC = null; S = null; loginStep = null; ls.set("sabai.acc", ""); if (NET){ const u = await NET.currentUser(); if (u && !u.anonymous) await NET.signOutToGuest(); } render(); }
+  else if (a === "reset"){ confirmReset = true; render(); }
+  else if (a === "reset0"){ confirmReset = false; render(); }
+  else if (a === "reset2"){ confirmReset = false; const keep = {goal:P.goal, newPerDay:P.newPerDay, rate:P.rate, showRom:P.showRom, showMy:P.showMy}; P = Object.assign(DEFAULTS(), keep); save(); render(); toast("Progress erased · <span class='my'>ဖျက်ပြီး</span>"); }
+  else if (a === "local") openAccount({mode:"local"});
+  else if (a === "makecode"){ newCode = NET.newRoomCode(8); loginStep = "newcode"; render(); }
+  else if (a === "loginback"){ loginStep = null; render(); }
+  else if (a === "usecode"){ loginStep = null; openAccount({mode:"code", code: t.dataset.code}); }
+  else if (a === "entercode"){ const c = NET.cleanRoomCode($("#codein").value, 8, 8); if (!c){ toast("Codes have 8 letters and digits · <span class='my'>ကုဒ်က ၈ လုံး ဖြစ်ပါတယ်</span>"); return; } openAccount({mode:"code", code:c}); }
+  else if (a === "google"){
+    try { const u = await NET.signInWithGoogle(); openAccount({mode:"google", uid:u.uid, name:u.name, email:u.email}); }
+    catch (err){ console.warn(err); toast(err.code === "auth/operation-not-allowed" ? "Google sign-in is not switched on in Firebase yet · Firebase မှာ Google ကို ဖွင့်ရန် လိုတယ်"
+      : err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request" ? "Sign-in cancelled · ပယ်ဖျက်ပြီး" : "Couldn't sign in: " + esc(err.code || err.message)); }
+  }
+});
+document.addEventListener("input", e => {
+  if (e.target.id === "wq"){ wq = e.target.value; renderWordList(); }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.id === "numin") document.querySelector('[data-act="numcheck"]')?.click();
+  if (e.key === "Enter" && e.target.id === "codein") document.querySelector('[data-act="entercode"]')?.click();
+});
+document.addEventListener("change", e => {
+  const id = e.target.id;
+  if (id === "s-goal") P.goal = +e.target.value;
+  else if (id === "s-new") P.newPerDay = +e.target.value;
+  else if (id === "s-rate"){ P.rate = +e.target.value; speak("สวัสดีค่ะ"); }
+  else if (id === "s-rom") P.showRom = e.target.checked;
+  else if (id === "s-my") P.showMy = e.target.checked;
+  else return;
+  save(); render();
+});
+function toggleMic(target, done){
+  if (!SR){ toast("Speech recognition isn't available in this browser · ဒီဘရောက်ဇာမှာ မရပါ"); return; }
+  if (mic){ mic.stop(); return; }
+  let got = null;
+  mic = listenThai(alts => { const best = alts.map(a => ({text: a, s: similar(a, target)})).sort((x, y) => y.s - x.s)[0]; got = {text: best.text, ok: best.s >= 0.7}; },
+    () => { mic = null; done(got || {text: "", ok: false}); });
+  render();
+}
+
+/* ================= BOOT ================= */
+(async () => {
+  render();
+  NET = await loadNet();
+  let acc = null; try { acc = JSON.parse(ls.get("sabai.acc") || "null"); } catch (e) {}
+  if (acc && acc.mode === "google" && NET){ const u = await NET.currentUser().catch(() => null); if (!u || u.anonymous || u.uid !== acc.uid) acc = null; }
+  if (acc && acc.mode !== "local" && !NET) acc = null;
+  if (acc) await openAccount(acc); else render();
+})();
+</script>
+</body>
+</html>
