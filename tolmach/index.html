@@ -206,7 +206,26 @@ header.bar{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-
 .result h2{font-family:"Literata",Georgia,serif; font-size:30px; margin:0 0 6px; font-variant-numeric:tabular-nums}
 .result .sub{color:var(--muted); margin:0 0 18px}
 
+/* ---------- online ---------- */
+.online{margin-top:22px; padding-top:18px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:12px}
+.online-h{font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--muted)}
+.online .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.online input{font:inherit; font-size:16px; padding:9px 12px; border-radius:var(--r); border:1px solid var(--line); background:var(--surface-2); color:var(--ink); width:9em; text-transform:uppercase; letter-spacing:.08em}
+.code{font-family:"Literata",Georgia,serif; font-weight:700; font-size:24px; letter-spacing:.12em}
+.roles{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.role{text-align:left; border:1px solid var(--line); background:var(--surface-2); border-radius:var(--r); padding:12px 14px; display:flex; flex-direction:column; gap:2px}
+.role b{font-size:16px}
+.role.ru b{color:var(--ru)} .role.my b{color:var(--my)}
+.role span{font-size:12.5px; color:var(--muted)}
+.role[aria-pressed="true"]{border-color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold)}
+.role[disabled]{opacity:.5; cursor:default}
+.linkbtn{border:none; background:none; padding:0; color:var(--gold); text-decoration:underline; font-size:inherit}
+.roombar{font-size:12.5px; color:var(--muted)}
+.roombar b{color:var(--ink); letter-spacing:.08em}
+.play.solo{grid-template-columns:minmax(0,1fr) minmax(300px,auto)}
 @media (max-width:900px){
+  .play.solo{grid-template-columns:1fr}
+  .play.solo.reading .panel{order:-2}
   .play{grid-template-columns:1fr}
   .board-col{order:-1}
   .panel{min-height:0}
@@ -225,6 +244,7 @@ header.bar{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-
       <span class="stage-chip" data-s="2">Диктовка · ညွှန်ကြားချက်</span>
       <span class="stage-chip" data-s="3">Задача · ပဟေဠိ</span>
     </div>
+    <div class="roombar" id="roombar" hidden></div>
     <div class="score" id="score" hidden><small>Очки · အမှတ်</small><span id="scoreval">0</span></div>
   </header>
 
@@ -248,6 +268,7 @@ header.bar{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-
       <button class="btn" id="start">Начать · စတင်မယ်</button>
       <button class="btn ghost" id="toggleVocab">Словарь · ဝေါဟာရ</button>
     </div>
+    <div class="online" id="online" hidden></div>
   </section>
 
   <section class="play" id="play" hidden>
@@ -571,6 +592,24 @@ const el = {
 };
 
 let S = null;
+
+/* online: one room, two phones. Each phone shows only its own half; the board is shared. */
+let net = null, db = null, me = null, roomCode = null, lobby = {}, lastJSON = null, lastFx = 0;
+const myRole = () => lobby.ru === me ? 'ru' : lobby.my === me ? 'my' : null;
+function pushState(){
+  if (!db || !S) return;
+  const j = JSON.stringify(S);
+  if (j === lastJSON) return;
+  lastJSON = j;
+  db.doc('game/state').set(JSON.parse(j)).catch(syncError);
+}
+/* who may tap the board right now */
+function canTouch(){
+  if (!db || !myRole()) return !db;
+  if (S.stage === 3) return S.phase === 'solve';
+  return myRole() !== S.reader;   // the listener makes the move
+}
+
 function freshState(){
   return {stage:0, i:0, score:0, tried:false, reader:'ru',
           board:null, palette:null, tasks:null, sel:null, phase:'read',
@@ -682,6 +721,7 @@ function renderBoard(){
     }
   }
   el.grid.innerHTML = html;
+  pushState();
 }
 
 function renderPalette(){
@@ -693,16 +733,22 @@ function renderPalette(){
     const used = S.stage === 3 && S.placed[p.o] !== undefined;
     return `<button class="chip" data-p="${n}" aria-pressed="${S.sel === n}" ${used ? 'disabled' : ''}>${svg(p.o, p.c)}</button>`;
   }).join('');
+  pushState();
 }
 
 function say(text, cls){
   el.msg.className = 'board-msg' + (cls ? ' ' + cls : '');
   el.msg.innerHTML = text;
+  if (S){ S.msg = {t:text, c:cls || ''}; pushState(); }
 }
 
 /* ---------- ход ---------- */
 
 function flash(i, ok){
+  if (S){ S.fx = {i, ok, n:(S.fx ? S.fx.n : 0) + 1}; lastFx = S.fx.n; pushState(); }
+  flashLocal(i, ok);
+}
+function flashLocal(i, ok){
   const c = el.grid.querySelector(`.cell[data-i="${i}"]`);
   if (!c) return;
   c.classList.add(ok ? 'hit' : 'miss');
@@ -734,6 +780,7 @@ function hideAdvance(){ el.advance.hidden = true; el.advance.onclick = null; }
 
 el.grid.addEventListener('click', e => {
   const b = e.target.closest('.cell'); if (!b || b.disabled) return;
+  if (!canTouch()) return;
   const i = +b.dataset.i;
 
   if (S.stage === 1){
@@ -789,6 +836,7 @@ el.grid.addEventListener('click', e => {
 
 el.palette.addEventListener('click', e => {
   const b = e.target.closest('.chip'); if (!b || b.disabled) return;
+  if (!canTouch()) return;
   const n = +b.dataset.p;
   S.sel = S.sel === n ? null : n;
   renderPalette();
@@ -829,7 +877,7 @@ function logicStep(){
   logCurrent();
   bump(factWords(task()), false);
   nextTask();
-  if (S.phase === 'read') showAdvance('Дальше · ဆက်သွား', logicStep);
+  if (S.phase === 'read' && (!db || !myRole() || myRole() === S.reader)) showAdvance('Дальше · ဆက်သွား', logicStep);
 }
 
 /* ============================================================
@@ -912,14 +960,116 @@ $('toggleVocab').onclick = () => {
 // этап 3 управляется кнопкой «Дальше», а не доской
 const _render = render;
 render = function(){
+  if (db && S && S.stage === 4) renderResult();
   _render();
-  if (S && S.stage === 3 && S.phase === 'read') showAdvance('Дальше · ဆက်သွား', logicStep);
-  else if (S && !(S.stage === 3 && S.phase === 'solve')) hideAdvance();
+  const reader = S && S.stage === 3 && S.phase === 'read' && (!db || !myRole() || myRole() === S.reader);
+  if (S && S.stage === 3 && S.phase === 'read'){ if (reader) showAdvance('Дальше · ဆက်သွား', logicStep); else hideAdvance(); }
+  else if (S && S.stage === 3 && S.phase === 'solve') showAdvance('Проверить · စစ်မယ်', checkLogic);
+  else if (S) hideAdvance();
+  renderOnline();
+  pushState();
 };
+
+/* ---------- online room UI ---------- */
+function renderOnline(){
+  const r = myRole(), on = !!(db && r && S && S.stage > 0 && S.stage < 4);
+  el.panelRu.hidden = on && r !== 'ru';
+  el.panelMy.hidden = on && r !== 'my';
+  el.play.classList.toggle('solo', on);
+  el.play.classList.toggle('reading', on && S.reader === r && S.phase !== 'solve');
+  if (db && S && S.msg && S.stage > 0){ el.msg.className = 'board-msg' + (S.msg.c ? ' ' + S.msg.c : ''); el.msg.innerHTML = S.msg.t; }
+  if (db && S && S.stage > 0 && S.stage < 4 && S.stage !== 3 && r && !canTouch()) el.grid.querySelectorAll('.cell').forEach(c => c.disabled = true);
+
+  const bar = $('roombar');
+  bar.hidden = !roomCode;
+  if (roomCode) bar.innerHTML = `Комната · အခန်း <b>${roomCode}</b> · <button class="linkbtn" data-copy>ссылка · လင့်ခ်</button>`;
+
+  const box = $('online');
+  box.hidden = !net || S.stage !== 0;
+  $('start').hidden = !!roomCode;
+  if (box.hidden) return;
+  if (!roomCode){
+    box.innerHTML = `<div class="online-h">Онлайн, каждый со своего телефона · ကိုယ့်ဖုန်းနဲ့ကိုယ် ကစားမယ်</div>
+      <div class="row"><button class="btn" data-room="new">Создать комнату · အခန်းဖွင့်မယ်</button>
+      <input id="joincode" placeholder="КОД · ကုဒ်" maxlength="8" autocomplete="off" aria-label="Код комнаты">
+      <button class="btn ghost" data-room="join">Войти · ဝင်မယ်</button></div>`;
+    return;
+  }
+  const st = k => lobby[k] === me ? 'это ты · သင်' : lobby[k] ? 'занято · ယူထားပြီ' : 'свободно · လွတ်တယ်';
+  const both = lobby.ru && lobby.my;
+  box.innerHTML = `<div class="online-h">Комната · အခန်း</div>
+    <div class="row"><span class="code">${roomCode}</span><button class="btn ghost" data-copy>Скопировать ссылку · လင့်ခ်ကူးမယ်</button></div>
+    <p style="margin:0">Отправь ссылку второму игроку. Каждый выбирает свою роль на своём телефоне.<br><span class="mm">လင့်ခ်ကို ပို့ပါ။ ကိုယ့်ဖုန်းမှာ ကိုယ့်အခန်းကဏ္ဍကို ရွေးပါ။</span></p>
+    <div class="roles">
+      <button class="role ru" data-role="ru" aria-pressed="${r === 'ru'}" ${lobby.ru && lobby.ru !== me ? 'disabled' : ''}><b>Он · кириллица</b><span>${st('ru')}</span></button>
+      <button class="role my" data-role="my" aria-pressed="${r === 'my'}" ${lobby.my && lobby.my !== me ? 'disabled' : ''}><b class="mm">သူမ · မြန်မာစာ</b><span>${st('my')}</span></button>
+    </div>
+    <div class="row">${both && r ? '<button class="btn" data-online-start>Начать · စတင်မယ်</button>' : `<span class="mm" style="color:var(--muted)">${r ? 'Ждём второго игрока · နောက်တစ်ယောက်ကို စောင့်နေတယ်' : 'Выбери роль · အခန်းကဏ္ဍ ရွေးပါ'}</span>`}
+      <button class="linkbtn" data-local>Играть на одном экране · တစ်မျက်နှာပြင်တည်း</button></div>`;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-copy],[data-room],[data-role],[data-online-start],[data-local]');
+  if (!t) return;
+  if (t.matches('[data-copy]')){
+    const url = location.href;
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+      () => { t.textContent = 'Скопировано · ကူးပြီး'; }, () => { prompt('', url); });
+  } else if (t.matches('[data-room]')){
+    const code = t.dataset.room === 'new' ? net.newRoomCode() : net.cleanRoomCode($('joincode').value);
+    if (code) joinRoom(code); else $('joincode').focus();
+  } else if (t.matches('[data-role]')){
+    const k = t.dataset.role, mine = lobby[k] === me;
+    const patch = {[k]: mine ? null : me};
+    const other = k === 'ru' ? 'my' : 'ru';
+    if (!mine && lobby[other] === me) patch[other] = null;      // one role per phone
+    Object.assign(lobby, patch); render();
+    db.doc('game/lobby').update(patch).catch(syncError);
+  } else if (t.matches('[data-online-start]')){
+    S = freshState(); startStage(1);
+  } else if (t.matches('[data-local]')){
+    location.hash = ''; location.reload();
+  }
+});
+let syncWarned = false;
+function syncError(e){
+  console.warn(e);
+  if (syncWarned) return; syncWarned = true;
+  alert('Не удалось сохранить ход в онлайн-комнате · အွန်လိုင်းမှာ မသိမ်းနိုင်ဘူး\n' + (e.code || e.message) +
+        (e.code === 'permission-denied' ? '\nFirestore rules: add the tolmach block from firestore.rules.' : ''));
+}
+async function joinRoom(code){
+  try {
+    const r = await net.openRoom('tolmach', code);
+    db = r.db; me = r.uid;
+  } catch (e){
+    alert('Не удалось подключиться к комнате · အခန်းကို မချိတ်နိုင်ဘူး\n' + (e.code || e.message)); return;
+  }
+  roomCode = code;
+  if (location.hash.slice(1) !== code) history.replaceState(null, '', '#' + code);
+  db.doc('game/lobby').onSnapshot(sn => { lobby = (sn.exists && sn.data()) || {}; render(); }, syncError);
+  db.doc('game/state').onSnapshot(sn => {
+    const d = sn.exists ? sn.data() : null;
+    if (!d){ if (S && S.stage) { S = freshState(); lastJSON = JSON.stringify(S); render(); } return; }
+    const j = JSON.stringify(d);
+    if (j === lastJSON) return;
+    lastJSON = j; S = d;
+    if (S.fx && S.fx.n > lastFx){ lastFx = S.fx.n; const fx = S.fx; setTimeout(() => flashLocal(fx.i, fx.ok), 30); }
+    render();
+  });
+  render();
+}
 
 function boot(data){
   S = (data && data.stage) ? data : freshState();
   render();
+  // GitHub Pages: online rooms through Firebase (shared/net.js); claude.ai and file:// stay on one screen
+  if (window.claude) return;
+  import('../shared/net.js').then(m => {
+    if (!m.configured()) return;
+    net = m;
+    const code = net.cleanRoomCode(location.hash.slice(1));
+    if (code) joinRoom(code); else render();
+  }).catch(() => {});
 }
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
 else boot((window.claude && window.claude.hot && window.claude.hot.data) || {});

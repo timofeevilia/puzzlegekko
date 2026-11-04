@@ -17,6 +17,16 @@ service cloud.firestore {
       allow delete: if signedIn();
     }
 
+    // Tolmach: tolmach/<ROOM>/game/{state,lobby}.
+    match /tolmach/{room}/{section}/{doc} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+                            && room.size() >= 4 && room.size() <= 8
+                            && section == 'game'
+                            && request.resource.data.size() < 100;
+      allow delete: if signedIn();
+    }
+
     // Next online game: add a block like the one above with its own collection name.
   }
 }
