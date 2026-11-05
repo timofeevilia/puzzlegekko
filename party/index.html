@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>Gekko Party</title>
+<meta name="description" content="Party games for phones and one big screen: The Last Train trivia, Doodle Lies drawing and Ballpark guessing. English, Russian and Burmese.">
+<meta name="theme-color" content="#140c2a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Rubik:wght@400;600;800&family=Rubik+Wet+Paint&family=Neucha&family=Noto+Sans+Myanmar:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="vendor/qrcode.js" defer></script>
+</head>
+<body>
+<div id="app"></div>
+<noscript>Gekko Party needs JavaScript.</noscript>
+<script type="module">
+import { L, critter, esc } from "./common.js";
+import { MASCOT } from "./art.js";
+
+const lang = (navigator.language || "").startsWith("ru") ? "ru" : (navigator.language || "").startsWith("my") ? "my" : "en";
+const T = k => L(k, lang);
+const h = location.hash.slice(1);
+
+if (h.startsWith("host=")) {
+  const { startHost } = await import("./host.js");
+  startHost(sessionStorage.getItem("gp-ver") || "en", h.slice(5).toUpperCase());
+} else if (/^[A-Za-z0-9]{4}$/.test(h)) {
+  const { startPlayer } = await import("./play.js");
+  startPlayer(h.toUpperCase());
+} else landing();
+
+function landing() {
+  document.body.classList.add("is-landing");
+  const vers = [
+    ["pair", L("vPair", "ru") + " · " + L("vPair", "my"), L("vPairD", "ru"), L("vPairD", "my"), [3, 1]],
+    ["en", L("vEn", "en"), L("vEnD", "en"), "", [0, 7, 4]],
+    ["ru", L("vRu", "ru"), L("vRuD", "ru"), "", [10, 5, 6]],
+  ];
+  document.getElementById("app").innerHTML = `<div class="landing">
+    <header class="l-head"><a href="../" class="home">← PuzzleGekko</a></header>
+    <div class="l-hero">${MASCOT}<div><h1>Gekko <span>Party</span></h1><p>${esc(T("tag"))}</p></div></div>
+    <section class="l-join">
+      <h2>📱 ${esc(T("joinTitle"))}</h2>
+      <form id="lj"><input id="lcode" maxlength="4" placeholder="ABCD" autocapitalize="characters" autocomplete="off" aria-label="${esc(T("code"))}"><button>${esc(T("joinBtn"))} →</button></form>
+    </section>
+    <section class="l-host">
+      <h2>📺 ${esc(T("hostBtn"))}</h2><p class="dim">${esc(T("hostHint"))}</p>
+      <h3>${esc(T("pickVersion"))}</h3>
+      <div class="versions">${vers.map(([id, t, d1, d2, avs]) => `<button class="ver v-${id}" data-v="${id}">
+        <div class="vav">${avs.map(a => critter(a, "happy")).join("")}</div>
+        <b>${esc(t)}</b><span>${esc(d1)}</span>${d2 ? `<span lang="my">${esc(d2)}</span>` : ""}</button>`).join("")}</div>
+    </section>
+    <section class="l-games">
+      <div><b>🚂 ${esc(T("trName"))}</b><span>${esc(T("trTag"))}</span></div>
+      <div><b>🎨 ${esc(T("ddName"))}</b><span>${esc(T("ddTag"))}</span></div>
+      <div><b>🦉 ${esc(T("bpName"))}</b><span>${esc(T("bpTag"))}</span></div>
+    </section>
+  </div>`;
+  const code = document.getElementById("lcode");
+  code.oninput = () => code.value = code.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  document.getElementById("lj").onsubmit = async e => {
+    e.preventDefault(); if (code.value.length !== 4) return code.focus();
+    document.body.classList.remove("is-landing");
+    const { startPlayer } = await import("./play.js"); startPlayer(code.value);
+  };
+  document.querySelector(".versions").onclick = async e => {
+    const b = e.target.closest("[data-v]"); if (!b) return;
+    sessionStorage.setItem("gp-ver", b.dataset.v);
+    document.body.classList.remove("is-landing");
+    const { initSound } = await import("./sound.js"); initSound();
+    const { startHost } = await import("./host.js"); startHost(b.dataset.v, null);
+  };
+}
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PuzzleGekko</title>
-<meta name="description" content="Small games for two: a property game set in Thailand and Myanmar, and a Russian–Burmese listening puzzle.">
+<meta name="description" content="Small games for two and for groups: a property game set in Thailand and Myanmar, party games for phones, a Thai course and a Russian–Burmese listening puzzle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
 <style>
@@ -69,6 +69,12 @@ h1 span{color:var(--skin)}
 .st .t>i{font-style:normal;color:#d9577f;font-weight:600}
 .st .tones{display:flex;gap:6px;justify-content:center;margin-top:12px}
 .st .tones i{width:26px;height:8px;border-radius:99px;background:var(--c)}
+/* Gekko Party slice: room-code tiles on a night-party gradient */
+.gp{background:radial-gradient(500px 300px at 10% 0%,#2f7a4a,transparent 70%),radial-gradient(500px 300px at 100% 100%,#6b2fa8,transparent 70%),#1d1446}
+.gp .t{text-align:center}
+.gp .tiles{display:flex;gap:8px;justify-content:center}
+.gp .tiles i{width:52px;height:60px;border-radius:12px;display:grid;place-items:center;font:800 34px var(--display);font-style:normal;color:#fff;box-shadow:0 5px 0 #000}
+.gp small{display:block;margin-top:14px;color:#e8defc;font-size:14px;letter-spacing:.04em}
 /* Tolmach slice: two alphabets on paper */
 .tm{background:#f2eee4;color:#20221d}
 .tm .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:340px}
@@ -121,6 +127,16 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
         <p>Learn Thai from Burmese: 386 words, including electronics and factory vocabulary, with Thai audio and Burmese and English sounds, daily spaced-repetition lessons, a tone trainer, the Thai alphabet, market prices and a phrasebook. Progress is saved to your account.</p>
         <div class="facts"><span>Learning</span><span>Burmese · English</span><span>Google or study code</span><span>10 min a day</span></div>
         <span class="play">Start learning →</span>
+      </div>
+    </a>
+
+    <a class="game" href="party/">
+      <div class="art gp"><div class="t"><div class="tiles"><i style="background:#e8434f">P</i><i style="background:#ff9a1f">A</i><i style="background:#2fb5ff">R</i><i style="background:#9a7bff">T</i><i style="background:#7ed957;color:#1d1233">Y</i></div><small>🚂 The Last Train · 🎨 Doodle Lies · 🦉 Ballpark</small></div></div>
+      <div class="info">
+        <h2>Gekko Party</h2>
+        <p>Party games for a group: one big screen shows the game, everyone plays from their phone. A trivia night on a haunted train where wrong answers lead to deadly trials, a drawing-and-bluffing game, and a guess-the-number show.</p>
+        <div class="facts"><span>2–8 players</span><span>Phones + TV or laptop</span><span>English · Русский · မြန်မာ</span><span>15–30 min</span></div>
+        <span class="play">Start a party →</span>
       </div>
     </a>
 

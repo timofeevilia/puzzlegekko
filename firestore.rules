@@ -42,6 +42,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // Gekko Party: party/<ROOM>/game/state is written only by the host screen that created it;
+    // party/<ROOM>/players/<uid> and party/<ROOM>/input/<uid>[_suffix] only by that player.
+    match /party/{room}/{section}/{doc} {
+      function mine() { return doc == request.auth.uid || doc.matches(request.auth.uid + '_[a-z0-9]+'); }
+      allow read: if signedIn();
+      allow create: if signedIn() && room.size() >= 4 && room.size() <= 8
+                    && (section == 'game' ? request.resource.data.host == request.auth.uid
+                                          : section in ['players', 'input'] && mine());
+      allow update: if signedIn()
+                    && (section == 'game' ? resource.data.host == request.auth.uid && request.resource.data.host == request.auth.uid
+                                          : section in ['players', 'input'] && mine());
+      allow delete: if signedIn() && (section == 'game' ? resource.data.host == request.auth.uid : mine());
+    }
+
     // Next online game: add a block like the one above with its own collection name.
   }
 }

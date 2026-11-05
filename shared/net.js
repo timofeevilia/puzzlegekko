@@ -1,7 +1,7 @@
 // Firebase for PuzzleGekko (auth + Firestore), shared by every game on the site.
 // Each game keeps its data under its own top-level collection: <game>/<ROOM>/...
 // The returned db mirrors the small part of the claude.ai `db` API the games use:
-// db.doc(path).onSnapshot / get / set / update / delete.
+// db.doc(path).onSnapshot / get / set / update / delete, plus db.col(path).onSnapshot for a whole sub-collection.
 import { FIREBASE_CONFIG } from "./firebase-config.js";
 
 const CDN = "https://www.gstatic.com/firebasejs/10.12.2/";
@@ -51,7 +51,12 @@ export async function store(prefix) {
     update: d => fs.setDoc(ref(p), d, { merge: true }),
     delete: () => fs.deleteDoc(ref(p)),
   });
-  return { doc };
+  // every document of a sub-collection, e.g. col("players").onSnapshot(list => ...), list = [{id, data}]
+  const col = p => ({
+    onSnapshot: (next, onErr) => fs.onSnapshot(fs.collection(db, `${prefix}/${p}`),
+      s => next(s.docs.map(d => ({ id: d.id, data: d.data() }))), e => onErr && onErr(err(e))),
+  });
+  return { doc, col };
 }
 
 export async function openRoom(game, room) {
