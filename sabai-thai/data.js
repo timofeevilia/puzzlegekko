@@ -229,6 +229,71 @@ const CATS = [
 เรียน|rian0|to study|သင်ယူတယ်
 สอน|sɔɔn4|to teach|သင်ပေးတယ်
 ประชุม|pra1 chum0|meeting|အစည်းအဝေး`},
+{k:"ssd", en:"Electronics & SSD", my:"အီလက်ထရောနစ်နှင့် SSD", ic:"💾", w:`
+เอสเอสดี|eet1 eet1 dii0|SSD (solid-state drive)|SSD
+เอ็นพีไอ|en0 phii0 ai0|NPI (new product introduction)|NPI (ထုတ်ကုန်အသစ် မိတ်ဆက်ခြင်း)
+สินค้าใหม่|sin4 khaa3 mai1|new product|ထုတ်ကုန်အသစ်
+ชิป|chip3|chip|ချစ်ပ်
+หน่วยความจำ|nuai1 khwaam0 jam0|memory|မှတ်ဉာဏ်
+แผงวงจร|phɛɛng4 wong0 jɔɔn0|circuit board, PCB|ဆားကစ်ဘုတ် (PCB)
+วงจร|wong0 jɔɔn0|circuit|ဆားကစ်
+ชิ้นส่วน|chin3 suan1|part, component|အစိတ်အပိုင်း
+ตัวต้านทาน|tua0 taan2 thaan0|resistor|ရီဆစ်စတာ
+ตัวเก็บประจุ|tua0 kep1 pra1 ju1|capacitor|ကပက်စီတာ
+บัดกรี|bat1 krii0|to solder|ဂဟေဆော်တယ်
+ตะกั่ว|ta1 kua1|solder (lead)|ခဲ
+เฟิร์มแวร์|fəəm0 wɛɛ0|firmware|ဖမ်းဝဲ
+โปรแกรม|proo0 krɛɛm0|program, software|ပရိုဂရမ်
+ข้อมูล|khɔɔ2 muun0|data|အချက်အလက်
+ความจุ|khwaam0 ju1|capacity (storage)|သိုလှောင်နိုင်မှု
+ความเร็ว|khwaam0 reo0|speed|အမြန်နှုန်း
+ทดสอบ|thot3 sɔɔp1|to test|စမ်းသပ်တယ်
+ผ่าน|phaan1|pass|အောင်တယ်
+ไม่ผ่าน|mai2 phaan1|fail|မအောင်ဘူး
+ตัวอย่าง|tua0 yaang1|sample|နမူနာ
+ทดลองผลิต|thot3 lɔɔng0 pha1 lit1|trial run, pilot build|စမ်းသပ်ထုတ်လုပ်မှု
+อุณหภูมิ|un0 ha1 phuum0|temperature|အပူချိန်
+ความชื้น|khwaam0 chʉʉn3|humidity|စိုထိုင်းဆ
+ไฟฟ้าสถิต|fai0 faa3 sa1 thit1|static electricity, ESD|ငြိမ်လျှပ်စစ် (ESD)
+ติดตั้ง|tit1 tang2|to install|တပ်ဆင်တယ်
+สแกน|sa1 kɛɛn0|to scan|စကင်ဖတ်တယ်
+บาร์โค้ด|baa0 khoot3|barcode|ဘားကုဒ်
+ฉลาก|cha1 laak1|label|တံဆိပ်`},
+{k:"factory", en:"Factory work", my:"စက်ရုံအလုပ်", ic:"🏭", w:`
+โรงงาน|roong0 ngaan0|factory|စက်ရုံ
+สายการผลิต|saai4 kaan0 pha1 lit1|production line|ထုတ်လုပ်ရေးလိုင်း
+ผลิต|pha1 lit1|to produce, manufacture|ထုတ်လုပ်တယ်
+เครื่องจักร|khrʉang2 jak1|machine|စက်
+วิศวกร|wit3 sa1 wa3 kɔɔn0|engineer|အင်ဂျင်နီယာ
+พนักงาน|pha3 nak3 ngaan0|employee, operator|ဝန်ထမ်း
+หัวหน้า|hua4 naa2|supervisor, boss|ကြီးကြပ်ရေးမှူး
+กะ|ka1|shift|ဆိုင်း
+กะกลางคืน|ka1 klaang0 khʉʉn0|night shift|ညဆိုင်း
+ทำโอที|tham0 oo0 thii0|to work overtime|အချိန်ပို လုပ်တယ်
+คุณภาพ|khun0 na3 phaap2|quality|အရည်အသွေး
+ตรวจสอบ|truat1 sɔɔp1|to inspect, check|စစ်ဆေးတယ်
+ของเสีย|khɔɔng4 sia4|defect, reject|ချို့ယွင်းပစ္စည်း
+อัตรา|at1 traa0|rate|နှုန်း
+ปัญหา|pan0 haa4|problem|ပြဿနာ
+สาเหตุ|saa4 heet1|cause|အကြောင်းရင်း
+แก้ไข|kɛɛ2 khai4|to fix, correct|ပြင်ဆင်တယ်
+ปรับ|prap1|to adjust|ချိန်ညှိတယ်
+เปลี่ยน|plian1|to change|ပြောင်းတယ်
+ขั้นตอน|khan2 tɔɔn0|step, procedure|အဆင့်
+มาตรฐาน|maat2 tra1 thaan4|standard|စံ
+เอกสาร|eek1 ka1 saan4|document|စာရွက်စာတမ်း
+คู่มือ|khuu2 mʉʉ0|manual|လက်စွဲ
+รายงาน|raai0 ngaan0|report|အစီရင်ခံစာ
+แผน|phɛɛn4|plan|အစီအစဉ်
+กำหนดส่ง|kam0 not1 song1|deadline|နောက်ဆုံးရက်
+ส่งของ|song1 khɔɔng4|to ship goods|ပစ္စည်းပို့တယ်
+บรรจุภัณฑ์|ban0 ju1 phan0|packaging|ထုပ်ပိုးမှု
+กล่อง|klɔɔng1|box|ဘူး
+ห้องสะอาด|hɔɔng2 sa1 aat1|clean room|သန့်ရှင်းခန်း
+ถุงมือ|thung4 mʉʉ0|gloves|လက်အိတ်
+ชุดป้องกัน|chut3 pɔɔng2 kan0|protective suit|အကာအကွယ်ဝတ်စုံ
+ระวัง|ra3 wang0|be careful|သတိထား
+อันตราย|an0 ta1 raai0|dangerous|အန္တရာယ်ရှိတယ်`},
 {k:"verbs", en:"Everyday verbs", my:"နေ့စဉ်သုံး ကြိယာ", ic:"🏃‍♀️", w:`
 พูด|phuut2|speak|ပြောတယ်
 ฟัง|fang0|listen|နားထောင်တယ်
@@ -379,6 +444,18 @@ const PHRASES = [
 พรุ่งนี้ขอลาหยุดได้ไหมคะ|phrung2 nii3 khɔɔ4 laa0 yut1 dai2 mai4 kha3|Can I take tomorrow off?|မနက်ဖြန် ခွင့်ယူလို့ ရမလား။
 ทำเสร็จแล้วค่ะ|tham0 set1 lɛɛw3 kha2|I've finished.|လုပ်ပြီးပါပြီ။
 ช่วยสอนหน่อยได้ไหมคะ|chuai2 sɔɔn4 nɔɔy1 dai2 mai4 kha3|Could you show me how?|သင်ပေးလို့ ရမလား။`},
+{k:"fab", en:"At the factory", my:"စက်ရုံမှာ", ic:"🏭", p:`
+ฉันเป็นวิศวกรเอ็นพีไอค่ะ|chan4 pen0 wit3 sa1 wa3 kɔɔn0 en0 phii0 ai0 kha2|I'm an NPI engineer.|ကျွန်မ NPI အင်ဂျင်နီယာပါ။
+ไลน์นี้มีปัญหาอะไรคะ|laai0 nii3 mii0 pan0 haa4 a1 rai0 kha3|What's the problem on this line?|ဒီလိုင်းမှာ ဘာပြဿနာ ရှိလဲ။
+เครื่องนี้เสียค่ะ|khrʉang2 nii3 sia4 kha2|This machine is broken.|ဒီစက် ပျက်နေတယ်။
+ช่วยตรวจสอบอีกครั้งได้ไหมคะ|chuai2 truat1 sɔɔp1 iik1 khrang3 dai2 mai4 kha3|Could you check it again?|ထပ်စစ်ပေးလို့ ရမလား။
+ตัวอย่างผ่านการทดสอบแล้วค่ะ|tua0 yaang1 phaan1 kaan0 thot3 sɔɔp1 lɛɛw3 kha2|The samples passed the test.|နမူနာတွေ စမ်းသပ်မှု အောင်ပြီ။
+ของเสียเยอะเกินไปค่ะ|khɔɔng4 sia4 yə3 kəən0 pai0 kha2|There are too many defects.|ချို့ယွင်းပစ္စည်း များလွန်းတယ်။
+อุณหภูมิสูงเกินไปค่ะ|un0 ha1 phuum0 suung4 kəən0 pai0 kha2|The temperature is too high.|အပူချိန် မြင့်လွန်းတယ်။
+ระวังไฟฟ้าสถิตนะคะ|ra3 wang0 fai0 faa3 sa1 thit1 na3 kha3|Watch out for static electricity.|ငြိမ်လျှပ်စစ်ကို သတိထားပါနော်။
+กรุณาใส่ถุงมือค่ะ|ka1 ru3 naa0 sai1 thung4 mʉʉ0 kha2|Please wear gloves.|လက်အိတ် ဝတ်ပါ။
+พรุ่งนี้ทดลองผลิตกี่โมงคะ|phrung2 nii3 thot3 lɔɔng0 pha1 lit1 kii1 moong0 kha3|What time is tomorrow's trial run?|မနက်ဖြန် စမ်းသပ်ထုတ်လုပ်မှု ဘယ်နှနာရီလဲ။
+ส่งรายงานให้แล้วค่ะ|song1 raai0 ngaan0 hai2 lɛɛw3 kha2|I've sent you the report.|အစီရင်ခံစာ ပို့ပေးပြီးပါပြီ။`},
 {k:"doctor", en:"Health & emergencies", my:"ကျန်းမာရေးနှင့် အရေးပေါ်", ic:"🚑", p:`
 ฉันไม่สบายค่ะ|chan4 mai2 sa1 baai0 kha2|I'm not feeling well.|ကျွန်မ နေမကောင်းဘူး။
 ปวดท้องค่ะ|puat1 thɔɔng3 kha2|I have a stomachache.|ဗိုက်နာတယ်။
