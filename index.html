@@ -6,7 +6,7 @@
 <title>PuzzleGekko</title>
 <meta name="description" content="Small games for two and for groups: a property game set in Thailand and Myanmar, party games for phones, a Thai course and a Russian–Burmese listening puzzle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
 <style>
 /* Layout: one column; a big wordmark with a gecko, then one wide card per game showing a slice of that game's own look. */
 :root{
@@ -75,6 +75,13 @@ h1 span{color:var(--skin)}
 .gp .tiles{display:flex;gap:8px;justify-content:center}
 .gp .tiles i{width:52px;height:60px;border-radius:12px;display:grid;place-items:center;font:800 34px var(--display);font-style:normal;color:#fff;box-shadow:0 5px 0 #000}
 .gp small{display:block;margin-top:14px;color:#e8defc;font-size:14px;letter-spacing:.04em}
+/* Merit Academy slice: a gold crest on navy, with a red exam stamp */
+.ma{background:radial-gradient(400px 260px at 70% 0%,rgba(201,162,39,.18),transparent 70%),#0f1424}
+.ma .t{text-align:center;color:#eae6da;position:relative}
+.ma svg{width:64px;height:auto}
+.ma b{display:block;font-family:"Playfair Display",Georgia,serif;font-size:clamp(30px,5vw,42px);font-weight:800;margin-top:6px}
+.ma small{display:block;color:#c9c4b6;font-size:13px;letter-spacing:.18em;text-transform:uppercase}
+.ma .stampx{position:absolute;right:-30px;top:-6px;border:3px solid #b3261e;color:#b3261e;font-weight:800;font-size:13px;padding:2px 8px;transform:rotate(12deg);letter-spacing:.1em}
 /* Tolmach slice: two alphabets on paper */
 .tm{background:#f2eee4;color:#20221d}
 .tm .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:340px}
@@ -137,6 +144,16 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
         <p>Party games for a group: one big screen shows the game, everyone plays from their phone. A trivia night on a haunted train where wrong answers lead to deadly trials, a drawing-and-bluffing game, and a guess-the-number show.</p>
         <div class="facts"><span>2–8 players</span><span>Phones + TV or laptop</span><span>English · Русский · မြန်မာ</span><span>15–30 min</span></div>
         <span class="play">Start a party →</span>
+      </div>
+    </a>
+
+    <a class="game" href="merit/">
+      <div class="art ma"><div class="t"><svg viewBox="0 0 40 46" aria-hidden="true"><path d="M20 2l17 6v14c0 12-8 19-17 22C11 41 3 34 3 22V8z" fill="#14182a" stroke="#c9a227" stroke-width="2.5"/><path d="M12 30V16l8 9 8-9v14" fill="none" stroke="#c9a227" stroke-width="3" stroke-linejoin="round"/></svg><b>Merit Academy</b><small>Special exams</small><span class="stampx">CLASS D</span></div></div>
+      <div class="info">
+        <h2>Merit Academy</h2>
+        <p>A single-player strategy game of special exams in a school that pays classes for their merit. Survive an island with a secret leader, find the hidden target in a group full of liars, push your class to a unanimous vote, and command the final duel.</p>
+        <div class="facts"><span>1 player</span><span>Strategy · deduction</span><span>Русский · English</span><span>40–60 min</span></div>
+        <span class="play">Enrol →</span>
       </div>
     </a>
 
