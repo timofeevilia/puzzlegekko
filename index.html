@@ -75,6 +75,13 @@ h1 span{color:var(--skin)}
 .gp .tiles{display:flex;gap:8px;justify-content:center}
 .gp .tiles i{width:52px;height:60px;border-radius:12px;display:grid;place-items:center;font:800 34px var(--display);font-style:normal;color:#fff;box-shadow:0 5px 0 #000}
 .gp small{display:block;margin-top:14px;color:#e8defc;font-size:14px;letter-spacing:.04em}
+/* Equilibrium slice: six neon sigils around a half-lit circle */
+.eq{background:radial-gradient(300px 200px at 50% 40%,rgba(124,242,196,.14),transparent 70%),#0d0f14}
+.eq .t{text-align:center;color:#e8ecf3}
+.eq .t>b{display:block;font-size:64px;line-height:1;color:#7cf2c4;text-shadow:0 0 30px rgba(124,242,196,.5)}
+.eq .t>span{display:block;font-family:var(--display);font-weight:800;font-size:clamp(28px,4.6vw,40px);margin:6px 0 12px}
+.eq .seats{display:flex;gap:8px;justify-content:center}
+.eq .seats i{font-style:normal;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--c) 40%,transparent)}
 /* Merit Academy slice: a gold crest on navy, with a red exam stamp */
 .ma{background:radial-gradient(400px 260px at 70% 0%,rgba(201,162,39,.18),transparent 70%),#0f1424}
 .ma .t{text-align:center;color:#eae6da;position:relative}
@@ -92,6 +99,7 @@ h1 span{color:var(--skin)}
 .mm{font-family:"Noto Sans Myanmar","Myanmar Text","Padauk",sans-serif;font-weight:500}
 .info h2 .mm{font-size:.8em}
 .tm small.mm{font-family:"Noto Sans Myanmar",sans-serif}
+footer .small{font-size:12px;opacity:.7}
 footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -138,22 +146,22 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
     </a>
 
     <a class="game" href="party/">
-      <div class="art gp"><div class="t"><div class="tiles"><i style="background:#e8434f">P</i><i style="background:#ff9a1f">A</i><i style="background:#2fb5ff">R</i><i style="background:#9a7bff">T</i><i style="background:#7ed957;color:#1d1233">Y</i></div><small>🚂 The Last Train · 🎨 Doodle Lies · 🦉 Ballpark</small></div></div>
+      <div class="art gp"><div class="t"><div class="tiles"><i style="background:#e8434f">P</i><i style="background:#ff9a1f">A</i><i style="background:#2fb5ff">R</i><i style="background:#9a7bff">T</i><i style="background:#7ed957;color:#1d1233">Y</i></div><small>🚂 Last Train · 🎨 Doodle Lies · 🦉 Ballpark · ✏️ Quick Sketch · 🖨️ Copycat</small></div></div>
       <div class="info">
         <h2>Gekko Party</h2>
-        <p>Party games for a group: one big screen shows the game, everyone plays from their phone. A trivia night on a haunted train where wrong answers lead to deadly trials, a drawing-and-bluffing game, and a guess-the-number show.</p>
+        <p>Party games for a group: one big screen shows the game, everyone plays from their phone. Five games: a trivia night on a haunted train where wrong answers lead to deadly trials, three drawing games (bluffing, live speed-guessing, copying from memory) and a guess-the-number show.</p>
         <div class="facts"><span>2–8 players</span><span>Phones + TV or laptop</span><span>English · Русский · မြန်မာ</span><span>15–30 min</span></div>
         <span class="play">Start a party →</span>
       </div>
     </a>
 
-    <a class="game" href="merit/">
-      <div class="art ma"><div class="t"><svg viewBox="0 0 40 46" aria-hidden="true"><path d="M20 2l17 6v14c0 12-8 19-17 22C11 41 3 34 3 22V8z" fill="#14182a" stroke="#c9a227" stroke-width="2.5"/><path d="M12 30V16l8 9 8-9v14" fill="none" stroke="#c9a227" stroke-width="3" stroke-linejoin="round"/></svg><b>Merit Academy</b><small>Special exams</small><span class="stampx">CLASS D</span></div></div>
+    <a class="game" href="equilibrium/">
+      <div class="art eq"><div class="t"><b>◐</b><span>Equilibrium</span><div class="seats"><i style="--c:#ff6b6b">●</i><i style="--c:#ffd166">▲</i><i style="--c:#4dd4ac">■</i><i style="--c:#5eb5ff">◆</i><i style="--c:#c792ea">⬢</i><i style="--c:#ff9f43">★</i></div></div></div>
       <div class="info">
-        <h2>Merit Academy</h2>
-        <p>A single-player strategy game of special exams in a school that pays classes for their merit. Survive an island with a secret leader, find the hidden target in a group full of liars, push your class to a unanimous vote, and command the final duel.</p>
-        <div class="facts"><span>1 player</span><span>Strategy · deduction</span><span>Русский · English</span><span>40–60 min</span></div>
-        <span class="play">Enrol →</span>
+        <h2>Equilibrium</h2>
+        <p>A single-player game of trust and betrayal. Six at one table, five with hidden characters. Each round is a small game from game theory, from the prisoner's dilemma to the stag hunt and an all-pay auction, with deals, pledges and spies before you choose. Elimination votes, then split or steal.</p>
+        <div class="facts"><span>1 player</span><span>Logic · strategy · bluff</span><span>Русский · English</span><span>20–30 min</span></div>
+        <span class="play">Take a seat →</span>
       </div>
     </a>
 
@@ -169,7 +177,7 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
   </main>
 
   <footer>
-    <span>Made by timofeevilia with Claude.</span>
+    <span>Made by timofeevilia with Claude. · <a href="merit/" class="small">Merit Academy (archive)</a></span>
     <a href="https://github.com/timofeevilia/PuzzleGekko">Source on GitHub</a>
   </footer>
 </div>

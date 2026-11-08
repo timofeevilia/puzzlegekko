@@ -470,6 +470,71 @@ a carrot at the gym|морковка в спортзале|အားကစား
 a cat that is also a loaf of bread|кот-батон|ပေါင်မုန့်ဖြစ်သွားတဲ့ ကြောင်
 `;
 
+// ── Quick Sketch: simple things to draw fast, "English|Russian|Burmese"
+const WORDS = `
+cat|кот|ကြောင်
+house|дом|အိမ်
+rocket|ракета|ဒုံးပျံ
+fish|рыба|ငါး
+umbrella|зонт|ထီး
+guitar|гитара|ဂီတာ
+bicycle|велосипед|စက်ဘီး
+snowman|снеговик|ဆီးနှင်းလူရုပ်
+pizza|пицца|ပီဇာ
+elephant|слон|ဆင်
+glasses|очки|မျက်မှန်
+tree|дерево|သစ်ပင်
+sun|солнце|နေ
+moon|луна|လ
+car|машина|ကား
+plane|самолёт|လေယာဉ်
+banana|банан|ငှက်ပျောသီး
+clock|часы|နာရီ
+crown|корона|သရဖူ
+ghost|привидение|သရဲ
+spider|паук|ပင့်ကူ
+cake|торт|ကိတ်မုန့်
+key|ключ|သော့
+phone|телефон|ဖုန်း
+book|книга|စာအုပ်
+shoe|ботинок|ဖိနပ်
+hat|шляпа|ဦးထုပ်
+flower|цветок|ပန်း
+heart|сердце|နှလုံး
+star|звезда|ကြယ်
+dog|собака|ခွေး
+bird|птица|ငှက်
+snake|змея|မြွေ
+turtle|черепаха|လိပ်
+mushroom|гриб|မှို
+ice cream|мороженое|ရေခဲမုန့်
+light bulb|лампочка|မီးသီး
+anchor|якорь|ကျောက်ဆူး
+camera|фотоаппарат|ကင်မရာ
+kite|воздушный змей|စွန်
+mountain|гора|တောင်
+boat|лодка|လှေ
+train|поезд|ရထား
+robot|робот|စက်ရုပ်
+dragon|дракон|နဂါး
+lighthouse|маяк|မီးပြတိုက်
+cactus|кактус|ရှားစောင်းပင်
+apple|яблоко|ပန်းသီး
+scissors|ножницы|ကတ်ကြေး
+toothbrush|зубная щётка|သွားတိုက်တံ
+pig|свинья|ဝက်
+owl|сова|ဇီးကွက်
+crab|краб|ဂဏန်း
+rainbow|радуга|သက်တံ့
+volcano|вулкан|မီးတောင်
+castle|замок|ရဲတိုက်
+bridge|мост|တံတား
+balloon|воздушный шар|ပူဖောင်း
+candle|свеча|ဖယောင်းတိုင်
+bell|колокол|ခေါင်းလောင်း
+frog|лягушка|ဖား
+`;
+
 // ── Ballpark: "answer" line, then the question in English, Russian and Burmese.
 const ESTIMATES = `
 206
@@ -646,6 +711,7 @@ export const finals = blocks(FINAL).map(lines => ({
   items: lines.slice(1).map(l => ({ ok: l.startsWith("+"), t: tri(l.replace(/^\+/, "").split("|")) })),
 }));
 export const prompts = PROMPTS.trim().split("\n").map(l => tri(l.split("|")));
+export const words = WORDS.trim().split("\n").map(l => tri(l.split("|")));
 export const estimates = blocks(ESTIMATES).map(l => ({ n: Number(l[0]), q: tri(l.slice(1)) }));
 
 // self-check, run once in the console with checkContent()
@@ -655,6 +721,7 @@ export function checkContent() {
   finals.forEach((f, i) => { if (f.items.filter(x => x.ok).length < 3 || f.items.filter(x => !x.ok).length < 3) bad.push("final " + i);
     f.items.forEach(x => LANGS.forEach(L => { if (!x.t[L]) bad.push("final item " + i + " " + L); })); });
   prompts.forEach((p, i) => LANGS.forEach(L => { if (!p[L]) bad.push("prompt " + i + " " + L); }));
+  words.forEach((p, i) => LANGS.forEach(L => { if (!p[L]) bad.push("word " + i + " " + L); }));
   estimates.forEach((e, i) => { if (!Number.isFinite(e.n)) bad.push("estimate " + i); LANGS.forEach(L => { if (!e.q[L]) bad.push("estimate " + i + " " + L); }); });
-  return { trivia: trivia.length, finals: finals.length, prompts: prompts.length, estimates: estimates.length, bad };
+  return { words: words.length, trivia: trivia.length, finals: finals.length, prompts: prompts.length, estimates: estimates.length, bad };
 }

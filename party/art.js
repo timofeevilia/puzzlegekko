@@ -165,3 +165,50 @@ export const DOODLES = `
     <circle cx="1810" cy="560" r="26" stroke="#ffb020"/><path d="M1810 520v-16M1810 616v-16M1770 560h-16M1866 560h-16" stroke="#ffb020"/>
   </g>
 </svg>`;
+
+// Quick Sketch host: a running pencil
+export const PENCIL = `
+<svg class="host-svg pencil" viewBox="0 0 220 320" aria-hidden="true">
+  <g stroke="#1d1233" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <g class="legs"><path d="M92 250l-18 42h-18" fill="none"/><path d="M128 250l14 42h20" fill="none"/></g>
+    <path d="M70 70h80v170l-40 50-40-50z" fill="#ffd23f"/>
+    <path d="M70 70h27v170l-27-0zM123 70h27v170h-27z" fill="#ffb020" stroke="none"/>
+    <path d="M70 70h80v170l-40 50-40-50z" fill="none"/>
+    <path d="M70 240l40 50 40-50z" fill="#f3d9a8"/><path d="M96 272l14 18 14-18z" fill="#1d1233"/>
+    <rect x="66" y="40" width="88" height="34" rx="6" fill="#c8c8d8"/>
+    <path d="M66 52h88M66 62h88" stroke-width="3"/>
+    <rect x="70" y="8" width="80" height="36" rx="16" fill="#ff7aa8"/>
+    <circle cx="96" cy="130" r="12" fill="#fff"/><circle cx="124" cy="130" r="12" fill="#fff"/>
+    <circle class="pupil" cx="99" cy="132" r="6" fill="#1d1233" stroke="none"/><circle class="pupil" cx="127" cy="132" r="6" fill="#1d1233" stroke="none"/>
+    <path class="mouth" d="M96 160q14 14 28 0z" fill="#7a1f3d"/>
+    <g class="arm-r"><path d="M150 150c26-6 40-22 46-40" fill="none"/><circle cx="198" cy="106" r="9" fill="#fff"/></g>
+    <g class="arm-l"><path d="M70 150c-22 8-34 24-38 42" fill="none"/><circle cx="31" cy="196" r="9" fill="#fff"/></g>
+  </g>
+  <path class="speed" d="M20 90h30M10 120h36M24 150h24" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+</svg>`;
+
+// Copycat host: a photocopier with a sheet coming out
+export const COPIER = `
+<svg class="host-svg copier" viewBox="0 0 260 300" aria-hidden="true">
+  <g stroke="#1d1233" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="30" y="110" width="200" height="150" rx="18" fill="#b9c4d6"/>
+    <rect x="44" y="250" width="34" height="30" rx="6" fill="#7d8aa1"/><rect x="182" y="250" width="34" height="30" rx="6" fill="#7d8aa1"/>
+    <path d="M40 110l20-40h140l20 40z" fill="#dfe6f1"/>
+    <rect x="70" y="84" width="120" height="12" rx="4" fill="#2fb5ff" class="scan"/>
+    <circle cx="96" cy="160" r="16" fill="#fff"/><circle cx="164" cy="160" r="16" fill="#fff"/>
+    <circle class="pupil" cx="100" cy="162" r="8" fill="#1d1233" stroke="none"/><circle class="pupil" cx="168" cy="162" r="8" fill="#1d1233" stroke="none"/>
+    <path class="mouth" d="M110 200q20 16 40 0" fill="none"/>
+    <circle cx="206" cy="132" r="6" fill="#7ed957"/><circle cx="188" cy="132" r="6" fill="#ff5fa2"/>
+    <g class="sheet"><path d="M90 232h80l6 54H84z" fill="#fff"/><path d="M104 252q10-12 20 0t20 0" fill="none" stroke="#e8434f" stroke-width="4"/></g>
+  </g>
+</svg>`;
+
+// Quick Sketch scenery: a chalkboard in a wooden frame with chalk doodles
+export const CHALK = `
+<svg class="doodles" viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true">
+  <g fill="none" stroke="#f4f1e6" stroke-linecap="round" stroke-width="5" opacity=".28">
+    <path d="M120 160l40-40 40 40-40 40z"/><path d="M1760 140c30-40 90-10 60 40"/><path d="M1700 900l40 20-40 20M1740 920h-90"/>
+    <path d="M140 900c20-50 110-50 110 0s-90 50-90 0"/><path d="M260 480q20 20 0 40t0 40"/>
+    <path d="M1790 520h60M1820 490v60"/><text x="1600" y="260" font-size="60" fill="#f4f1e6" stroke="none" font-family="cursive">a² + b²</text>
+  </g>
+</svg>`;

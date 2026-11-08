@@ -121,6 +121,26 @@ const UI = {
   exact: ["Exactly right!", "Точно в цель!", "အတိအကျ မှန်တယ်!"],
   answerIs: ["The answer is", "Правильный ответ", "အဖြေက"],
   goodBet: ["good bet", "верная ставка", "လောင်းတာ မှန်တယ်"],
+  // Quick Sketch
+  qsName: ["Quick Sketch", "Быстрый карандаш", "အမြန်ပုံဆွဲ"],
+  qsTag: ["One draws live, everyone races to guess. The faster you guess, the more you score.", "Один рисует вживую, остальные наперегонки угадывают. Чем быстрее, тем больше очков.", "တစ်ယောက်က တိုက်ရိုက်ဆွဲပြီး ကျန်သူတွေက အပြိုင်ခန့်မှန်းကြတယ်။ မြန်လေ ရမှတ်များလေ။"],
+  qsIntro: ["One of you draws, live on the big screen. Everyone else picks the answer on their phone. Speed is everything!", "Один рисует, прямо на большом экране. Остальные выбирают ответ на телефоне. Решает скорость!", "တစ်ယောက်က စခရင်ကြီးပေါ်မှာ တိုက်ရိုက်ဆွဲမယ်။ ကျန်သူတွေက ဖုန်းမှာ အဖြေရွေးပါ။ မြန်ဖို့ အရေးကြီးတယ်!"],
+  youDraw: ["You're drawing! Everyone is watching", "Рисуете вы! Все смотрят", "သင်ဆွဲရမယ်! အားလုံး ကြည့်နေတယ်"],
+  guessIt: ["What is being drawn?", "Что рисуют?", "ဘာဆွဲနေလဲ။"],
+  theWord: ["It was", "Это было", "အဖြေက"],
+  guessed: ["guessed it", "угадали", "မှန်ခဲ့တယ်"],
+  // Copycat
+  ccName: ["Copycat", "Копия копии", "ကူးပြီးကူး"],
+  ccTag: ["Look at a drawing for six seconds, then redraw it from memory. Pass it on and watch it mutate.", "Шесть секунд смотрите на рисунок, потом рисуете по памяти. Передаёте дальше и смотрите, во что он превратится.", "ပုံကို ခြောက်စက္ကန့် ကြည့်ပြီး မှတ်မိသလို ပြန်ဆွဲပါ။ ဆက်ပေးပြီး ဘာဖြစ်သွားလဲ ကြည့်ပါ။"],
+  ccIntro: ["Everyone starts with a secret title. Then the drawings go round: look, memorise, redraw. At the end, guess what the very first one was!", "Каждый начинает с секретной темы. Потом рисунки идут по кругу: смотрите, запоминаете, перерисовываете. В конце угадайте, что было в самом начале!", "လူတိုင်း လျှို့ဝှက်ခေါင်းစဉ်နဲ့ စမယ်။ ပြီးရင် ပုံတွေ လှည့်ပတ်သွားမယ် — ကြည့်၊ မှတ်၊ ပြန်ဆွဲ။ နောက်ဆုံးမှာ အစက ဘာလဲ ခန့်မှန်းပါ!"],
+  drawOrig: ["Draw your secret title", "Нарисуйте свою секретную тему", "သင့်လျှို့ဝှက်ခေါင်းစဉ်ကို ဆွဲပါ"],
+  memorise: ["Memorise this drawing!", "Запомните рисунок!", "ဒီပုံကို မှတ်ထားပါ!"],
+  copyIt: ["Now draw it from memory", "Теперь нарисуйте по памяти", "အခု မှတ်မိသလို ပြန်ဆွဲပါ"],
+  copying: ["Everyone is copying…", "Все перерисовывают…", "အားလုံး ပြန်ဆွဲနေကြတယ်…"],
+  step: ["Step", "Шаг", "အဆင့်"],
+  guessOrig: ["What was the very first title?", "Какая была самая первая тема?", "အစဆုံး ခေါင်းစဉ်က ဘာလဲ။"],
+  original: ["Original", "Оригинал", "မူရင်း"],
+  yourChain: ["This chain started with you. Watch them guess!", "Эта цепочка началась с вас. Смотрите, как угадывают!", "ဒီကွင်းဆက်က သင်နဲ့ စခဲ့တာ။ သူတို့ ခန့်မှန်းတာ ကြည့်ပါ!"],
   // reactions
 };
 export const LANG_NAMES = { en: "English", ru: "Русский", my: "မြန်မာ" };
@@ -248,3 +268,19 @@ export function critter(i, mood = "idle") {
 }
 export const critterColor = i => CRITTERS[((i % 12) + 12) % 12].c;
 export const REACTIONS = ["😂", "😱", "👏", "❤️", "🔥", "💀"];
+
+// draw a stroke string ("cw:x,y,x,y…" joined with ";", coordinates 0..1000) onto a canvas
+export function paintStrokes(cv, s, cols) {
+  const g = cv.getContext("2d"), W = cv.width;
+  g.fillStyle = "#fffdf7"; g.fillRect(0, 0, W, W); g.lineCap = "round"; g.lineJoin = "round";
+  for (const x of String(s || "").split(";")) {
+    if (!x) continue;
+    const [h, pts] = x.split(":"), p = (pts || "").split(",").map(Number);
+    g.strokeStyle = cols[+h[0]] || "#1d1233"; g.lineWidth = (+h[1] ? 22 : 8) * W / 1000; g.beginPath();
+    g.moveTo(p[0] * W / 1000, p[1] * W / 1000); if (p.length === 2) g.lineTo(p[0] * W / 1000 + .1, p[1] * W / 1000);
+    for (let i = 2; i < p.length; i += 2) g.lineTo(p[i] * W / 1000, p[i + 1] * W / 1000);
+    g.stroke();
+  }
+}
+
+export const COLOR_PAIRS = [["#1d1233", "#e8434f"], ["#1d1233", "#2fb5ff"], ["#1d1233", "#2fc47e"], ["#6a1b9a", "#ffb020"], ["#0b4f8a", "#ff5fa2"], ["#1d1233", "#ff9a1f"], ["#3d2b1f", "#7a5cff"], ["#0f6b4f", "#e8434f"]];

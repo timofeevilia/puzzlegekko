@@ -179,8 +179,8 @@ body.is-host{overflow:hidden;background:#000}
 .menu{position:absolute;inset:0;padding:80px 90px;text-align:center}
 .menu h2{margin:0;font:900 84px var(--display);animation:rise .5s both}
 .menu .sub{font-size:30px;margin:8px 0 40px;opacity:.85}
-.posters{display:grid;grid-template-columns:repeat(3,1fr);gap:46px}
-.poster{border:0;height:640px;border-radius:40px;padding:30px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;box-shadow:0 18px 0 rgba(0,0,0,.35);animation:rise .6s var(--d) var(--spring) both;transition:transform .2s var(--spring)}
+.posters{display:grid;grid-template-columns:repeat(5,1fr);gap:24px}
+.poster{border:0;height:640px;border-radius:34px;padding:24px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;box-shadow:0 18px 0 rgba(0,0,0,.35);animation:rise .6s var(--d) var(--spring) both;transition:transform .2s var(--spring)}
 .poster:hover{transform:translateY(-10px) rotate(-1deg)}
 .poster .pa{height:330px;display:flex;align-items:flex-end;justify-content:center}
 .poster .pa .host-svg{height:320px;width:auto}
@@ -445,7 +445,7 @@ legend{font-weight:600;color:#cdbfe8;margin-bottom:8px}
 .ph-top .me b{font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ph-top .pts{font:800 18px var(--display)}
 .ph-top .pts small{font-size:12px;opacity:.7}
-.ph-top .rc{font:700 14px var(--display);opacity:.55;letter-spacing:.1em}
+.ph-top .rc{font:700 14px var(--display);opacity:.6;letter-spacing:.1em;border:0;background:rgba(255,255,255,.08);border-radius:10px;padding:6px 10px}
 .tbar{height:7px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
 .tbar i{display:block;height:100%;width:0;background:var(--me);border-radius:9px}
 .ph-body{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:16px}
@@ -534,3 +534,77 @@ textarea:focus{outline:none;border-color:var(--me)}
 .phone.g-doodle .q,.phone.g-doodle .draw-head h2{font-family:var(--hand);font-weight:400;font-size:30px}
 .phone.g-ball{background:radial-gradient(500px 400px at 50% 0,rgba(255,176,32,.22),transparent 70%)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+
+/* menu with five games */
+.menu{padding:70px 60px}
+.poster .pa{height:280px}
+.poster .pa .host-svg{height:260px}
+.poster h3{font-size:34px}
+.poster-train h3{font-size:44px}
+.poster-doodle h3{font-size:50px}
+.poster p{font-size:20px}
+.poster-quick{background:radial-gradient(circle at 50% 30%,#2f6a4f,#163a2b 75%);color:#f4f1e6;box-shadow:0 18px 0 rgba(0,0,0,.35),inset 0 0 0 12px #8a5a2b}
+.poster-quick h3{font-family:var(--hand);font-weight:400;font-size:52px}
+.poster-copy{background:#e9eef6;color:var(--ink);background-image:repeating-linear-gradient(0deg,rgba(47,181,255,.12) 0 2px,transparent 2px 30px),repeating-linear-gradient(90deg,rgba(47,181,255,.12) 0 2px,transparent 2px 30px)}
+.poster-copy h3{color:#0b4f8a}
+.copier .scan{animation:scan 1.6s ease-in-out infinite}
+@keyframes scan{50%{transform:translateY(10px);opacity:.4}}
+.copier .sheet{animation:bob 2s ease-in-out infinite}
+.pencil .legs{transform-box:fill-box;transform-origin:50% 0;animation:shake .3s infinite}
+
+/* ── Quick Sketch: the chalkboard */
+.bg-chalk{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#2f6a4f,#1b4433 70%,#123024);box-shadow:inset 0 0 0 26px #8a5a2b,inset 0 0 0 34px #5c3a1a}
+.bg-chalk .doodles{position:absolute;inset:0;width:100%;height:100%}
+.bg-chalk .dust{position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.5px) 0 0/7px 7px}
+#stage[data-scene="chalk"] .pl .nm{color:#f4f1e6}
+.title-card.chalk h1{font-family:var(--hand);font-weight:400;font-size:170px;color:#f4f1e6;text-shadow:0 0 12px rgba(255,255,255,.35)}
+.qs{position:absolute;inset:0}
+.qs .board{position:absolute;left:130px;top:80px;width:740px;background:#fff;padding:20px 20px 80px;border-radius:10px;box-shadow:0 20px 40px rgba(0,0,0,.4);animation:pop .5s var(--spring) both}
+.qs canvas{display:block;width:100%;height:auto;background:#fffdf7;border-radius:4px}
+.qs .board .by{position:absolute;left:24px;bottom:16px;display:flex;align-items:center;gap:12px;font:400 40px var(--hand);color:var(--ink)}
+.qs .board .by .critter{width:56px}
+.qs .board .by em{font:800 32px var(--display);font-style:normal;color:#2f8f3e}
+.qs .side{position:absolute;left:960px;right:220px;top:120px;color:#f4f1e6}
+.qs .side h2{margin:0;font:400 96px/1 var(--hand)}
+.qs .side h2.word{font-size:120px;color:#ffd23f;animation:pop .5s var(--spring) both}
+.qs .side .sub{margin:10px 0 30px;font-size:30px;opacity:.8}
+.racers{display:flex;flex-direction:column;gap:14px}
+.gq{display:grid;grid-template-columns:70px 1fr 120px;align-items:center;gap:16px;padding:8px 18px;border-radius:20px;background:rgba(0,0,0,.25);font-size:32px;transition:transform .3s var(--spring),background .3s}
+.gq .critter{width:64px}
+.gq i{font:900 36px var(--display);font-style:normal;text-align:right;opacity:.6}
+.gq.in{background:rgba(255,210,63,.25);transform:translateX(20px)}
+.gq.in i{opacity:1;color:#ffd23f}
+.gq.ok{background:rgba(126,217,87,.3)}.gq.ok i{color:#7ed957;opacity:1}
+.gq.no{opacity:.6}
+
+/* ── Copycat: the chain reveal */
+.steplbl{font:800 34px var(--display);margin:0 0 20px;color:#0b4f8a}
+.cc-rev{position:absolute;inset:0;padding:90px 60px 0}
+.cc-rev .chain{display:flex;gap:22px;justify-content:center;align-items:flex-start}
+.cc-rev .link{width:330px;background:#fff;padding:14px 14px 60px;box-shadow:0 14px 30px rgba(29,18,51,.25);position:relative;opacity:0;animation:pop .5s var(--d) var(--spring) forwards}
+.cc-rev .link:nth-child(odd){transform:rotate(-2deg)}
+.cc-rev .link canvas{display:block;width:100%;height:auto;background:#fffdf7}
+.cc-rev .link span{position:absolute;left:14px;bottom:10px;display:flex;align-items:center;gap:8px;font:400 30px var(--hand);color:var(--ink)}
+.cc-rev .link span .critter{width:40px}
+.cc-rev .link.prompt{background:#fff4a3;min-height:400px;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:24px}
+.cc-rev .link.prompt small{font:800 20px var(--display);text-transform:uppercase;color:#e8434f}
+.cc-rev .link.prompt b{font:400 46px/1.15 var(--hand);color:var(--ink)}
+.cc-rev .link.prompt b .l2{font-family:"Noto Sans Myanmar";font-size:.6em}
+.guessline{display:flex;justify-content:center;gap:30px;margin-top:50px;opacity:0;animation:pop .5s var(--d) var(--spring) forwards}
+.guessline span{display:flex;align-items:center;gap:10px;font:800 34px var(--display);padding:10px 22px;border-radius:99px;background:#fff;color:var(--ink)}
+.guessline span.ok{background:#c9f2b8}.guessline span.no{background:#ffd1e3}
+.guessline .critter{width:48px}
+
+/* phone: word grid and the memorise view */
+.votes.words{grid-template-columns:1fr 1fr}
+.votes.words button{text-align:center;font-size:26px}
+.peekt{font:900 64px var(--display)!important;color:var(--me)}
+#peek{border-radius:18px;box-shadow:0 8px 0 rgba(0,0,0,.35)}
+.phone.g-quick{background:radial-gradient(500px 400px at 50% 0,rgba(126,217,87,.2),transparent 70%)}
+.phone.g-copy{background:#e9eef6;color:var(--ink);box-shadow:0 0 0 100vmax #e9eef6}
+.phone.g-copy .tbar{background:rgba(29,18,51,.12)}
+.phone.g-copy .tools .wid,.phone.g-copy #undo{border-color:rgba(29,18,51,.25);background:#fff}
+.phone.g-copy .tools .wid.sel{background:var(--ink);color:#fff}
+.phone.g-copy .reacts button{background:rgba(29,18,51,.08)}
+.cc-rev .link.prompt span{position:static;margin-top:auto}
+.cc-rev .link.prompt{justify-content:flex-start}

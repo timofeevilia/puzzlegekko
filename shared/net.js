@@ -46,6 +46,8 @@ export async function store(prefix) {
   const doc = p => ({
     onSnapshot: (next, onErr) => fs.onSnapshot(ref(p), s => next(wrap(s)), e => onErr && onErr(err(e))),
     get: async () => wrap(await fs.getDoc(ref(p))),
+    // straight from the server, skipping the local cache (used to resync a listener that went quiet)
+    fresh: async () => wrap(await fs.getDocFromServer(ref(p))),
     set: d => fs.setDoc(ref(p), d),
     // claude.ai `update` merges nested objects; Firestore does that with set(..., {merge:true})
     update: d => fs.setDoc(ref(p), d, { merge: true }),
