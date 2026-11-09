@@ -584,8 +584,8 @@ textarea:focus{outline:none;border-color:var(--me)}
 .cc-rev .link{width:330px;background:#fff;padding:14px 14px 60px;box-shadow:0 14px 30px rgba(29,18,51,.25);position:relative;opacity:0;animation:pop .5s var(--d) var(--spring) forwards}
 .cc-rev .link:nth-child(odd){transform:rotate(-2deg)}
 .cc-rev .link canvas{display:block;width:100%;height:auto;background:#fffdf7}
-.cc-rev .link span{position:absolute;left:14px;bottom:10px;display:flex;align-items:center;gap:8px;font:400 30px var(--hand);color:var(--ink)}
-.cc-rev .link span .critter{width:40px}
+.cc-rev .link .author{position:absolute;left:14px;bottom:10px;display:flex;align-items:center;gap:8px;font:400 30px var(--hand);color:var(--ink)}
+.cc-rev .link .author .critter{width:40px}
 .cc-rev .link.prompt{background:#fff4a3;min-height:400px;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:24px}
 .cc-rev .link.prompt small{font:800 20px var(--display);text-transform:uppercase;color:#e8434f}
 .cc-rev .link.prompt b{font:400 46px/1.15 var(--hand);color:var(--ink)}
@@ -598,7 +598,8 @@ textarea:focus{outline:none;border-color:var(--me)}
 /* phone: word grid and the memorise view */
 .votes.words{grid-template-columns:1fr 1fr}
 .votes.words button{text-align:center;font-size:26px}
-.peekt{font:900 64px var(--display)!important;color:var(--me)}
+.peekt{font:800 24px var(--display)!important}
+.peekt span{display:block;font-size:56px;line-height:1.1;color:var(--me)}
 #peek{border-radius:18px;box-shadow:0 8px 0 rgba(0,0,0,.35)}
 .phone.g-quick{background:radial-gradient(500px 400px at 50% 0,rgba(126,217,87,.2),transparent 70%)}
 .phone.g-copy{background:#e9eef6;color:var(--ink);box-shadow:0 0 0 100vmax #e9eef6}
@@ -606,5 +607,30 @@ textarea:focus{outline:none;border-color:var(--me)}
 .phone.g-copy .tools .wid,.phone.g-copy #undo{border-color:rgba(29,18,51,.25);background:#fff}
 .phone.g-copy .tools .wid.sel{background:var(--ink);color:#fff}
 .phone.g-copy .reacts button{background:rgba(29,18,51,.08)}
-.cc-rev .link.prompt span{position:static;margin-top:auto}
+.cc-rev .link.prompt .author{position:static;margin-top:auto}
 .cc-rev .link.prompt{justify-content:flex-start}
+/* Copycat levels and the two-player reveal */
+.lvl{display:inline-flex;align-items:center;gap:16px;margin:0 0 24px;padding:12px 28px;border-radius:99px;background:#fff;color:var(--ink);font:400 40px var(--hand);box-shadow:0 8px 0 rgba(29,18,51,.15);animation:pop .5s var(--spring) both}
+.lvl b{font:900 30px var(--display);color:#fff;background:#0b4f8a;border-radius:99px;padding:4px 16px}
+.lvl.lv2 b{background:#ff9a1f}.lvl.lv3 b{background:#e8434f}
+.cc-rev.pair{padding:70px 60px 0;display:flex;flex-direction:column;align-items:center;gap:26px}
+.cc-rev.pair .lvl{margin:0}
+.cc-rev.pair .chain{gap:26px;align-items:stretch}
+.cc-rev.pair .link{width:300px}
+.cc-rev.pair .link.prompt{min-height:0}
+.cc-rev.pair .link.prompt b{font-size:36px}
+.verdict-card{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:18px!important;font:400 34px var(--hand);color:var(--ink)}
+.verdict-card .critter{width:90px}
+.verdict-card em{font-style:normal;font-size:30px}
+.verdict-card .l2{font-family:"Noto Sans Myanmar";font-size:.6em}
+.verdict-card.ok{background:#c9f2b8}.verdict-card.no{background:#ffd1e3}
+.qs .side .racers .gq b{font-size:30px}
+.qs .side h2.word{font-size:84px;line-height:1.05}
+.qs .side h2.word .l2{font-size:.5em;line-height:1.6}
+.verdict-card em{display:flex;flex-direction:column;align-items:center}
+.cc-rev.pair{gap:20px;padding-top:60px}
+.vcard{width:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:18px;border-radius:18px;background:#fff;color:var(--ink);font:400 34px var(--hand);box-shadow:0 14px 30px rgba(29,18,51,.25);opacity:0;animation:pop .5s var(--d) var(--spring) forwards}
+.vcard .critter{width:90px}
+.vcard em{font-style:normal;font-size:30px;display:flex;flex-direction:column;align-items:center}
+.vcard .l2{font-family:"Noto Sans Myanmar";font-size:.6em}
+.vcard.good{background:#c9f2b8}.vcard.bad{background:#ffd1e3}

@@ -22,7 +22,11 @@ async function init() {
   // reuse the account this browser already has (anonymous or Google), so a reload keeps your seat
   const existing = await new Promise(res => { const un = auth.onAuthStateChanged(a, u => { un(); res(u); }); });
   if (!existing) await auth.signInAnonymously(a);
-  return { fs, db: fs.getFirestore(app), auth, a };
+  // iPhone and iPad browsers (Safari and Chrome alike run on WebKit) sometimes hold back live updates on the
+  // streaming channel; plain long polling delivers them reliably there.
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const db = ios ? fs.initializeFirestore(app, { experimentalForceLongPolling: true }) : fs.getFirestore(app);
+  return { fs, db, auth, a };
 }
 const services = () => (ready = ready || init());
 

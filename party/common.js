@@ -140,6 +140,14 @@ const UI = {
   step: ["Step", "Шаг", "အဆင့်"],
   guessOrig: ["What was the very first title?", "Какая была самая первая тема?", "အစဆုံး ခေါင်းစဉ်က ဘာလဲ။"],
   original: ["Original", "Оригинал", "မူရင်း"],
+  ccIntroPair: ["Three rounds. Each of you draws a secret title, then copies the other's drawing from memory, and each round it gets harder. Then guess what you copied!", "Три раунда. Каждый рисует секретную тему, потом по памяти перерисовывает рисунок другого, и с каждым раундом сложнее. А потом угадайте, что вы перерисовали!", "သုံးကြိမ် ကစားမယ်။ တစ်ယောက်ချင်း လျှို့ဝှက်ခေါင်းစဉ်ကို ဆွဲပြီး တစ်ဖက်လူရဲ့ ပုံကို မှတ်မိသလို ပြန်ဆွဲရမယ်။ တစ်ကြိမ်ထက် တစ်ကြိမ် ခက်လာမယ်။ ပြီးရင် ဘာကို ကူးခဲ့လဲ ခန့်မှန်းပါ!"],
+  round: ["Round", "Раунд", "အကြိမ်"],
+  level: ["Level", "Уровень", "အဆင့်"],
+  lv1: ["6 seconds to memorise", "6 секунд на запоминание", "မှတ်ဖို့ ၆ စက္ကန့်"],
+  lv2: ["only 3 seconds to memorise", "всего 3 секунды на запоминание", "မှတ်ဖို့ ၃ စက္ကန့်သာ"],
+  lv3: ["draw blind: the lines stay invisible", "рисуем вслепую: линий не видно", "မမြင်ရဘဲ ဆွဲရမယ် — မျဉ်းတွေ မပေါ်ဘူး"],
+  blindHint: ["You can't see your lines. Trust your hand!", "Линий не видно. Доверьтесь руке!", "မျဉ်းတွေ မမြင်ရဘူး။ လက်ကို ယုံပါ!"],
+  guessCopy: ["What was the drawing you just copied?", "Что было на рисунке, который вы перерисовали?", "သင်ကူးခဲ့တဲ့ ပုံက ဘာလဲ။"],
   yourChain: ["This chain started with you. Watch them guess!", "Эта цепочка началась с вас. Смотрите, как угадывают!", "ဒီကွင်းဆက်က သင်နဲ့ စခဲ့တာ။ သူတို့ ခန့်မှန်းတာ ကြည့်ပါ!"],
   // reactions
 };

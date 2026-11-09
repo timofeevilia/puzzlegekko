@@ -94,7 +94,8 @@ function keepInSync() {
   const back = () => { if (!document.hidden) { listen(); resync(); } };
   document.addEventListener("visibilitychange", back);
   addEventListener("pageshow", back); addEventListener("focus", () => resync()); addEventListener("online", back);
-  clearInterval(syncTimer); syncTimer = setInterval(() => { if (!document.hidden) resync(); }, 5000);
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  clearInterval(syncTimer); syncTimer = setInterval(() => { if (!document.hidden) resync(); }, ios ? 2500 : 5000);
 }
 
 // ── state
@@ -146,12 +147,13 @@ function paintTop() { const el = $(".pts"); if (el && S) el.innerHTML = `${fmtNu
 function tick() {
   cancelAnimationFrame(tickT);
   const bar = $(".tbar i"); if (!bar) return;
-  const f = () => { const tot = PHASE_SECS[S.phase] || 20; const l = left(); bar.style.width = S.dl && TIMED.has(S.phase) ? (100 * Math.min(1, l / (tot * 1000))) + "%" : "0"; autoSend?.(l); tickT = requestAnimationFrame(f); };
+  const f = () => { const tot = S.phase === "cc_copy" && S.cc?.lv ? CC_LV[S.cc.lv].view + CC_LV[S.cc.lv].draw + 1 : PHASE_SECS[S.phase] || 20; const l = left(); bar.style.width = S.dl && TIMED.has(S.phase) ? (100 * Math.min(1, l / (tot * 1000))) + "%" : "0"; autoSend?.(l); tickT = requestAnimationFrame(f); };
   f();
 }
 let autoSend = null;
-const TIMED = new Set(["tr_q", "tr_t", "tr_fq", "dd_draw", "dd_lie", "dd_vote", "dd_pick", "bp_q", "bp_bet", "qs_draw", "cc_draw", "cc_copy", "cc_guess"]);
-const PHASE_SECS = { tr_q: 20, tr_t: 22, tr_fq: 15, dd_draw: 90, dd_lie: 50, dd_vote: 25, dd_pick: 25, bp_q: 30, bp_bet: 16, qs_draw: 60, cc_draw: 50, cc_copy: 51, cc_guess: 20 };
+const TIMED = new Set(["tr_q", "tr_t", "tr_fq", "dd_draw", "dd_lie", "dd_vote", "dd_pick", "bp_q", "bp_bet", "qs_draw", "cc_draw", "cc_copy", "cc_guess", "cc_pguess"]);
+const PHASE_SECS = { tr_q: 20, tr_t: 22, tr_fq: 15, dd_draw: 90, dd_lie: 50, dd_vote: 25, dd_pick: 25, bp_q: 30, bp_bet: 16, qs_draw: 75, cc_draw: 50, cc_copy: 51, cc_guess: 20, cc_pguess: 20 };
+const CC_LV = { 1: { view: 6, draw: 45 }, 2: { view: 3, draw: 35 }, 3: { view: 4, draw: 40, blind: true } };
 const sent = () => sentStep === S.step;
 const watch = (msg = T("watch"), mood = "idle", extra = "") => { const mp = P(me); return `<div class="watch"><div class="big-av bob">${critter(mp.av, mood)}</div><h2>${msg}</h2>${extra}${reactions()}</div>`; };
 const reactions = () => { after = chain(after, () => { const r = $(".reacts"); if (r) r.onclick = e => { const b = e.target.closest("[data-e]"); if (b) { react(b.dataset.e); b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); } }; }); return `<div class="reacts" aria-label="${esc(T("react"))}">${REACTIONS.map(e => `<button data-e="${e}">${e}</button>`).join("")}</div>`; };
@@ -302,18 +304,19 @@ SCREENS.dd_draw = () => {
   const pr = C.prompts[S.dd.prompts[me]], cols = S.dd.cols[me];
   return padHTML(T("drawThis"), tx(pr), cols) + bind(() => drawPad(cols, { submit: s => send({ s, r: S.dd.round }, me + "_d" + S.dd.round) }));
 };
-function drawPad(cols, { submit: onSubmit, live } = {}) {
+function drawPad(cols, { submit: onSubmit, live, blind = false } = {}) {
   const cv = $("#pad"), wrap = $(".canvas-wrap");
   const size = Math.min(wrap.clientWidth, innerHeight - 290, 560), dpr = devicePixelRatio || 1;
   cv.style.width = cv.style.height = size + "px"; cv.width = cv.height = size * dpr;
   const g = cv.getContext("2d"), K = cv.width / 1000;
   let strokes = [], cur = null, c = 0, w = 1;
-  const redraw = () => { g.fillStyle = "#fffdf7"; g.fillRect(0, 0, cv.width, cv.width); g.lineCap = g.lineJoin = "round";
+  const redraw = () => { g.fillStyle = "#fffdf7"; g.fillRect(0, 0, cv.width, cv.width); g.lineCap = g.lineJoin = "round"; if (blind) return;
     for (const s of strokes) { g.strokeStyle = cols[s.c]; g.lineWidth = (s.w ? 22 : 8) * K; g.beginPath(); g.moveTo(s.p[0] * K, s.p[1] * K); if (s.p.length === 2) g.lineTo(s.p[0] * K + .1, s.p[1] * K); for (let i = 2; i < s.p.length; i += 2) g.lineTo(s.p[i] * K, s.p[i + 1] * K); g.stroke(); } };
   redraw();
   const pt = e => { const r = cv.getBoundingClientRect(); return [Math.round(Math.max(0, Math.min(1000, (e.clientX - r.left) / r.width * 1000))), Math.round(Math.max(0, Math.min(1000, (e.clientY - r.top) / r.height * 1000)))]; };
   cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); cur = { c, w, p: pt(e) }; strokes.push(cur); redraw(); };
   cv.onpointermove = e => { if (!cur) return; const [x, y] = pt(e), n = cur.p.length; if (Math.hypot(x - cur.p[n - 2], y - cur.p[n - 1]) < 5) return; cur.p.push(x, y);
+    if (blind) { redraw(); g.fillStyle = "rgba(29,18,51,.25)"; g.beginPath(); g.arc(x * K, y * K, 14 * K, 0, 7); g.fill(); return; }
     g.strokeStyle = cols[cur.c]; g.lineWidth = (cur.w ? 22 : 8) * K; g.beginPath(); g.moveTo(cur.p[n - 2] * K, cur.p[n - 1] * K); g.lineTo(x * K, y * K); g.stroke(); };
   cv.onpointerup = cv.onpointercancel = () => { cur = null; };
   document.querySelectorAll(".col").forEach(b => b.onclick = () => { c = +b.dataset.c; document.querySelectorAll(".col").forEach(x => x.classList.toggle("sel", x === b)); });
@@ -386,34 +389,36 @@ SCREENS.bp_rev = () => {
 SCREENS.qs_intro = () => watch(T("qsName"), "happy", `<p class="dim">${T("qsIntro")}</p>`);
 SCREENS.qs_draw = () => {
   const q = S.qs, drawer = q.order[q.i], cols = COLOR_PAIRS[q.col];
-  if (drawer === me) return padHTML(T("youDraw"), tx(C.words[q.word]), cols, false) + bind(() => drawPad(cols, { live: s => db.doc("input/" + me + "_lv").set({ k: S.step, s }).catch(showErr) }));
-  if (sent()) return watch(T("waitOthers"), "idle", `<div class="chosen">${tx(C.words[q.opts[lastSent?.o ?? 0]])}</div>`);
-  return `<h2 class="q">${T("guessIt")}</h2><p class="dim">${T("watch")}</p><div class="votes words">${q.opts.map((o, i) => `<button data-o="${i}">${tx(C.words[o])}</button>`).join("")}</div>` +
+  if (drawer === me) return padHTML(T("youDraw"), tx(C.prompts[q.word]), cols, false) + bind(() => drawPad(cols, { live: s => db.doc("input/" + me + "_lv").set({ k: S.step, s }).catch(showErr) }));
+  if (sent()) return watch(T("waitOthers"), "idle", `<div class="chosen">${tx(C.prompts[q.opts[lastSent?.o ?? 0]])}</div>`);
+  return `<h2 class="q">${T("guessIt")}</h2><p class="dim">${T("watch")}</p><div class="votes">${q.opts.map((o, i) => `<button data-o="${i}">${tx(C.prompts[o])}</button>`).join("")}</div>` +
     bind(() => { $(".votes").onclick = e => { const b = e.target.closest("[data-o]"); if (b) send({ o: +b.dataset.o }); }; });
 };
 SCREENS.qs_rev = () => {
   const q = S.qs, drawer = q.order[q.i];
-  if (drawer === me) return watch(q.dpts ? "+" + q.dpts : T("theWord") + ": " + tx(C.words[q.word]), q.dpts ? "happy" : "sad");
+  if (drawer === me) return watch(q.dpts ? "+" + q.dpts : T("theWord") + ": " + tx(C.prompts[q.word]), q.dpts ? "happy" : "sad");
   const pts = q.got[me];
-  return watch(pts ? T("correct") + " +" + pts : T("wrong"), pts ? "happy" : "sad", `<p class="dim">${T("theWord")}: ${tx(C.words[q.word])}</p>`);
+  return watch(pts ? T("correct") + " +" + pts : T("wrong"), pts ? "happy" : "sad", `<p class="dim">${T("theWord")}: ${tx(C.prompts[q.word])}</p>`);
 };
 
 // ═════ Copycat
-SCREENS.cc_intro = () => watch(T("ccName"), "happy", `<p class="dim">${T("ccIntro")}</p>`);
-const ccCols = c => COLOR_PAIRS[S.cc.cols[c]];
+SCREENS.cc_intro = () => watch(T("ccName"), "happy", `<p class="dim">${T(S.cc.pair ? "ccIntroPair" : "ccIntro")}</p>`);
+const ccCols = c => COLOR_PAIRS[S.cc.chains[c].col];
+const ccPrompt = c => tx(C.prompts[S.cc.chains[c].p]);
 SCREENS.cc_draw = () => {
   if (sent()) return watch(T("waitOthers"), "happy");
   const a = S.cc.assign[me]; if (!a) return watch();
-  return padHTML(T("drawOrig"), tx(C.prompts[S.cc.prompts[a.c]]), ccCols(a.c)) + bind(() => drawPad(ccCols(a.c), { submit: s => send({ s }, a.doc) }));
+  return padHTML(T("drawOrig"), ccPrompt(a.c), ccCols(a.c)) + bind(() => drawPad(ccCols(a.c), { submit: s => send({ s }, a.doc) }));
 };
 SCREENS.cc_copy = () => {
   if (sent()) return watch(T("waitOthers"), "happy");
   const a = S.cc.assign[me]; if (!a) return watch();
-  const cols = ccCols(a.c), step = S.step;
+  const cols = ccCols(a.c), step = S.step, lv = CC_LV[a.lv] || CC_LV[1];
+  const lvTag = `${T("level")} ${a.lv}: ${T("lv" + a.lv)}`;
   const toPad = (fallback = false) => {
     if (S.step !== step || sent()) return;
-    $(".ph-body").innerHTML = padHTML(T("copyIt"), fallback ? tx(C.prompts[S.cc.prompts[a.c]]) : "", cols);
-    drawPad(cols, { submit: s => send({ s }, a.doc) });
+    $(".ph-body").innerHTML = padHTML(lvTag, fallback ? ccPrompt(a.c) : lv.blind ? "🙈 " + T("blindHint") : T("copyIt"), cols);
+    drawPad(cols, { submit: s => send({ s }, a.doc), blind: lv.blind && !fallback });
   };
   bind(async () => {
     if (!a.prev) return toPad(true);
@@ -425,17 +430,25 @@ SCREENS.cc_copy = () => {
     const size = Math.min($(".canvas-wrap").clientWidth, innerHeight - 260, 560), dpr = devicePixelRatio || 1;
     cv.style.width = cv.style.height = size + "px"; cv.width = cv.height = size * dpr;
     paintStrokes(cv, s, cols);
-    let left = 6; $("#peekt").textContent = left;
+    let left = lv.view; $("#peekt").textContent = left;
     const iv = setInterval(() => { left--; const el = $("#peekt"); if (el) el.textContent = left; if (left <= 0) { clearInterval(iv); toPad(); } }, 1000);
     const prev = cleanup; cleanup = () => { clearInterval(iv); prev?.(); };
   });
-  return `<div class="draw-head"><small>${T("memorise")}</small><h2 class="peekt"><span id="peekt">…</span></h2></div><div class="canvas-wrap"><canvas id="peek"></canvas></div>`;
+  return `<div class="draw-head"><small>${lvTag}</small><h2 class="peekt">${T("memorise")} <span id="peekt">…</span></h2></div><div class="canvas-wrap"><canvas id="peek"></canvas></div>`;
 };
+const guessList = (opts) => `<div class="votes">${opts.map((p, i) => `<button data-v="${i}">${tx(C.prompts[p])}</button>`).join("")}</div>` +
+  bind(() => { $(".votes").onclick = e => { const b = e.target.closest("[data-v]"); if (b) send({ v: +b.dataset.v }); }; });
 SCREENS.cc_guess = () => {
-  const cc = S.cc;
-  if (cc.order[cc.ci] === me) return watch(T("yourChain"), "happy");
+  const ch = S.cc.chains[S.cc.ci];
+  if (ch.by === me) return watch(T("yourChain"), "happy");
   if (sent()) return watch(T("waitOthers"));
-  return `<h2 class="q">${T("guessOrig")}</h2><p class="dim">${T("watch")}</p><div class="votes">${cc.opts.map((p, i) => `<button data-v="${i}">${tx(C.prompts[p])}</button>`).join("")}</div>` +
-    bind(() => { $(".votes").onclick = e => { const b = e.target.closest("[data-v]"); if (b) send({ v: +b.dataset.v }); }; });
+  return `<h2 class="q">${T("guessOrig")}</h2><p class="dim">${T("watch")}</p>` + guessList(ch.opts);
 };
-SCREENS.cc_rev = () => { const cc = S.cc; if (cc.order[cc.ci] === me) return watch(T("watch"), "happy"); const ok = cc.got[me]; return watch(ok ? T("correct") + " +500" : T("wrong"), ok ? "happy" : "sad", `<p class="dim">${T("original")}: ${tx(C.prompts[cc.prompts[cc.ci]])}</p>`); };
+SCREENS.cc_rev = () => { const ch = S.cc.chains[S.cc.ci]; if (ch.by === me) return watch(T("watch"), "happy"); const ok = ch.got[me]; return watch(ok ? T("correct") + " +500" : T("wrong"), ok ? "happy" : "sad", `<p class="dim">${T("original")}: ${tx(C.prompts[ch.p])}</p>`); };
+const myPairChain = () => S.cc.chains.slice(S.cc.first).find(ch => ch.guesser === me);
+SCREENS.cc_pguess = () => {
+  const ch = myPairChain(); if (!ch) return watch();
+  if (sent()) return watch(T("waitOthers"));
+  return `<h2 class="q">${T("guessCopy")}</h2>` + guessList(ch.opts);
+};
+SCREENS.cc_prev = () => { const ch = myPairChain(); if (!ch) return watch(); const ok = ch.got[me]; return watch(ok ? T("correct") + " +500" : T("wrong"), ok ? "happy" : "sad", `<p class="dim">${T("original")}: ${tx(C.prompts[ch.p])}</p>`); };

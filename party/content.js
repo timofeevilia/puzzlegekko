@@ -391,149 +391,167 @@ Cherry|Вишня|ချယ်ရီသီး
 Lemon|Лимон|သံပုရာသီး
 `;
 
-// ── Doodle Lies: "English|Russian|Burmese" drawing prompts
-const PROMPTS = `
-a cat at a job interview|кот на собеседовании|အလုပ်အင်တာဗျူး ဖြေနေတဲ့ ကြောင်
-a dancing durian|танцующий дуриан|ကနေတဲ့ ဒူးရင်းသီး
-a sad robot eating noodles|грустный робот ест лапшу|ခေါက်ဆွဲစားနေတဲ့ ဝမ်းနည်းနေတဲ့ စက်ရုပ်
-grandma on a skateboard|бабушка на скейтборде|စကိတ်ဘုတ်စီးနေတဲ့ အဖွား
-a fish that is afraid of water|рыба, которая боится воды|ရေကြောက်တဲ့ ငါး
-an elephant in a tiny car|слон в крошечной машине|ကားအသေးလေးထဲက ဆင်
-a ghost brushing its teeth|привидение чистит зубы|သွားတိုက်နေတဲ့ သရဲ
-a vampire at the dentist|вампир у стоматолога|သွားဆရာဝန်ဆီ ရောက်နေတဲ့ ဗန်ပိုင်ယာ
-a snowman on the beach|снеговик на пляже|ကမ်းခြေပေါ်က ဆီးနှင်းလူရုပ်
-a dragon making tea|дракон заваривает чай|လက်ဖက်ရည်ဖျော်နေတဲ့ နဂါး
-a nervous banana|нервный банан|စိတ်လှုပ်ရှားနေတဲ့ ငှက်ပျောသီး
-a chicken on a motorbike|курица на мотоцикле|ဆိုင်ကယ်စီးနေတဲ့ ကြက်
-a pigeon stealing a sandwich|голубь ворует бутерброд|ပေါင်မုန့်ခိုးနေတဲ့ ခို
-a very tired superhero|очень уставший супергерой|အရမ်းပင်ပန်းနေတဲ့ စူပါဟီးရိုး
-a cactus giving a hug|кактус обнимается|ဖက်ပေးနေတဲ့ ရှားစောင်းပင်
-a shark in a business suit|акула в деловом костюме|ကုတ်အင်္ကျီဝတ်ထားတဲ့ ငါးမန်း
-a frog wedding|лягушачья свадьба|ဖားတွေရဲ့ မင်္ဂလာဆောင်
-breakfast in space|завтрак в космосе|အာကာသထဲမှာ မနက်စာ
-a tiger in pyjamas|тигр в пижаме|ညဝတ်အင်္ကျီဝတ်ထားတဲ့ ကျား
-a penguin in the desert|пингвин в пустыне|သဲကန္တာရထဲက ပင်ဂွင်း
-an octopus doing karate|осьминог занимается карате|ကရာတေးလုပ်နေတဲ့ ရေဘဝဲ
-a pizza in love|влюблённая пицца|အချစ်ရူးနေတဲ့ ပီဇာ
-a dinosaur at a birthday party|динозавр на дне рождения|မွေးနေ့ပွဲမှာ ဒိုင်နိုဆော
-a cow on the Moon|корова на Луне|လပေါ်က နွား
-a sleepy volcano|сонный вулкан|အိပ်ငိုက်နေတဲ့ မီးတောင်
-a fridge with a secret|холодильник с секретом|လျှို့ဝှက်ချက်ရှိတဲ့ ရေခဲသေတ္တာ
-an angry teapot|злой чайник|စိတ်ဆိုးနေတဲ့ ရေနွေးကရား
-a pirate who is afraid of the sea|пират, который боится моря|ပင်လယ်ကြောက်တဲ့ ပင်လယ်ဓားပြ
-a mosquito with a tiny umbrella|комар с крошечным зонтиком|ထီးသေးသေးလေး ကိုင်ထားတဲ့ ခြင်
-a very rich gecko|очень богатый геккон|အရမ်းချမ်းသာတဲ့ တောက်တဲ့
-a snail winning a race|улитка выигрывает гонку|ပြိုင်ပွဲနိုင်နေတဲ့ ခရု
-a robot in love with a toaster|робот влюбился в тостер|ပေါင်မုန့်ကင်စက်ကို ချစ်နေတဲ့ စက်ရုပ်
-a crocodile at the hairdresser|крокодил в парикмахерской|ဆံပင်ညှပ်ဆိုင် ရောက်နေတဲ့ မိကျောင်း
-a bear who lost the TV remote|медведь потерял пульт от телевизора|တီဗီရီမုတ် ပျောက်သွားတဲ့ ဝက်ဝံ
-a giraffe in a lift|жираф в лифте|ဓာတ်လှေကားထဲက သစ်ကုလားအုပ်
-a haunted rice cooker|рисоварка с привидением|သရဲခြောက်နေတဲ့ ထမင်းပေါင်းအိုး
-a monkey fixing a computer|обезьяна чинит компьютер|ကွန်ပျူတာ ပြင်နေတဲ့ မျောက်
-a duck taking a taxi|утка едет на такси|တက္ကစီစီးနေတဲ့ ဘဲ
-an alien at the night market|инопланетянин на ночном рынке|ညဈေးထဲက ဂြိုဟ်သား
-a sneaky mango|хитрое манго|ကလိမ်ကကျစ်လုပ်နေတဲ့ သရက်သီး
-a ninja grandma|бабушка-ниндзя|နင်ဂျာအဖွား
-an ant lifting weights|муравей поднимает штангу|အလေးမနေတဲ့ ပုရွက်ဆိတ်
-a balloon afraid of needles|воздушный шарик боится иголок|အပ်ကြောက်တဲ့ ပူဖောင်း
-a mermaid in a bathtub|русалка в ванне|ရေချိုးကန်ထဲက ရေသူမ
-a lonely sock|одинокий носок|အထီးကျန်နေတဲ့ ခြေအိတ်
-a king without a kingdom|король без королевства|တိုင်းပြည်မရှိတဲ့ ဘုရင်
-a burger with legs|бургер с ногами|ခြေထောက်ပါတဲ့ ဘာဂါ
-a sunflower in sunglasses|подсолнух в солнечных очках|နေကာမျက်မှန် တပ်ထားတဲ့ နေကြာပန်း
-a fish riding a bicycle|рыба на велосипеде|စက်ဘီးစီးနေတဲ့ ငါး
-a cow singing karaoke|корова поёт караоке|ကာရာအိုကေ ဆိုနေတဲ့ နွား
-a wizard stuck in traffic|волшебник застрял в пробке|ကားကြပ်ထဲ ပိတ်မိနေတဲ့ မှော်ဆရာ
-an ice cream in a sauna|мороженое в сауне|ချွေးထုတ်ခန်းထဲက ရေခဲမုန့်
-a sheep counting people|овца считает людей|လူတွေကို ရေတွက်နေတဲ့ သိုး
-a pineapple in a tuxedo|ананас во фраке|ဝတ်စုံပြည့် ဝတ်ထားတဲ့ နာနတ်သီး
-a whale in a swimming pool|кит в бассейне|ရေကူးကန်ထဲက ဝေလငါး
-a cat ruling the world|кот правит миром|ကမ္ဘာကို အုပ်ချုပ်နေတဲ့ ကြောင်
-a dog doing homework|собака делает домашку|အိမ်စာလုပ်နေတဲ့ ခွေး
-a scarecrow afraid of birds|пугало боится птиц|ငှက်ကြောက်တဲ့ စာခြောက်ရုပ်
-a rocket made of noodles|ракета из лапши|ခေါက်ဆွဲနဲ့ လုပ်ထားတဲ့ ဒုံးပျံ
-a bored ghost|скучающее привидение|ပျင်းနေတဲ့ သရဲ
-a turtle in a hurry|черепаха спешит|အလောတကြီး ဖြစ်နေတဲ့ လိပ်
-a hedgehog hugging a balloon|ёжик обнимает шарик|ပူဖောင်းကို ဖက်ထားတဲ့ ဖြူကောင်
-a lamp that wants to sleep|лампа, которая хочет спать|အိပ်ချင်နေတဲ့ မီးအိမ်
-an astronaut at the market|космонавт на рынке|ဈေးထဲက အာကာသယာဉ်မှူး
-a cloud with a cold|простуженное облако|အအေးမိနေတဲ့ တိမ်
-a pig in a bubble bath|свинья в пенной ванне|ဆပ်ပြာမြှုပ်ထဲမှာ ရေချိုးနေတဲ့ ဝက်
-a squirrel with a big secret|белка с большим секретом|လျှို့ဝှက်ချက်ကြီး ရှိတဲ့ ရှဉ့်
-a teacher who is a potato|учитель-картошка|အာလူးဆရာ
-a snake wearing socks|змея в носках|ခြေအိတ်စွပ်ထားတဲ့ မြွေ
-the Moon doing yoga|Луна занимается йогой|ယောဂကျင့်နေတဲ့ လ
-a lion afraid of a mouse|лев боится мыши|ကြွက်ကို ကြောက်တဲ့ ခြင်္သေ့
-a bee with a jetpack|пчела с реактивным ранцем|ဂျက်လွယ်အိတ် ပါတဲ့ ပျား
-a hamster driving a bus|хомяк водит автобус|ဘတ်စ်ကား မောင်းနေတဲ့ ကြွက်ကလေး
-a carrot at the gym|морковка в спортзале|အားကစားရုံထဲက မုန်လာဥနီ
-a cat that is also a loaf of bread|кот-батон|ပေါင်မုန့်ဖြစ်သွားတဲ့ ကြောင်
-`;
-
-// ── Quick Sketch: simple things to draw fast, "English|Russian|Burmese"
-const WORDS = `
-cat|кот|ကြောင်
-house|дом|အိမ်
-rocket|ракета|ဒုံးပျံ
-fish|рыба|ငါး
-umbrella|зонт|ထီး
-guitar|гитара|ဂီတာ
-bicycle|велосипед|စက်ဘီး
-snowman|снеговик|ဆီးနှင်းလူရုပ်
-pizza|пицца|ပီဇာ
-elephant|слон|ဆင်
-glasses|очки|မျက်မှန်
-tree|дерево|သစ်ပင်
-sun|солнце|နေ
-moon|луна|လ
-car|машина|ကား
-plane|самолёт|လေယာဉ်
-banana|банан|ငှက်ပျောသီး
-clock|часы|နာရီ
-crown|корона|သရဖူ
-ghost|привидение|သရဲ
-spider|паук|ပင့်ကူ
-cake|торт|ကိတ်မုန့်
-key|ключ|သော့
-phone|телефон|ဖုန်း
-book|книга|စာအုပ်
-shoe|ботинок|ဖိနပ်
-hat|шляпа|ဦးထုပ်
-flower|цветок|ပန်း
-heart|сердце|နှလုံး
-star|звезда|ကြယ်
-dog|собака|ခွေး
-bird|птица|ငှက်
-snake|змея|မြွေ
-turtle|черепаха|လိပ်
-mushroom|гриб|မှို
-ice cream|мороженое|ရေခဲမုန့်
-light bulb|лампочка|မီးသီး
-anchor|якорь|ကျောက်ဆူး
-camera|фотоаппарат|ကင်မရာ
-kite|воздушный змей|စွန်
-mountain|гора|တောင်
-boat|лодка|လှေ
-train|поезд|ရထား
-robot|робот|စက်ရုပ်
-dragon|дракон|နဂါး
-lighthouse|маяк|မီးပြတိုက်
-cactus|кактус|ရှားစောင်းပင်
-apple|яблоко|ပန်းသီး
-scissors|ножницы|ကတ်ကြေး
-toothbrush|зубная щётка|သွားတိုက်တံ
-pig|свинья|ဝက်
-owl|сова|ဇီးကွက်
-crab|краб|ဂဏန်း
-rainbow|радуга|သက်တံ့
-volcano|вулкан|မီးတောင်
-castle|замок|ရဲတိုက်
-bridge|мост|တံတား
-balloon|воздушный шар|ပူဖောင်း
-candle|свеча|ဖယောင်းတိုင်
-bell|колокол|ခေါင်းလောင်း
-frog|лягушка|ဖား
-`;
+// ── Drawing prompts for Doodle Lies, Quick Sketch and Copycat. Every prompt is a "who" plus a "what":
+// English and Russian put the who first ("a cat in a sauna"), Burmese puts the situation first.
+// A prompt's id is who * 100 + what. The bank is a fixed selection of 1,200 of the 4,000+ combinations.
+const WHO = `
+a cat|кот|ကြောင်
+a dog|собака|ခွေး
+grandma|бабушка|အဖွား
+a dragon|дракон|နဂါး
+a penguin|пингвин|ပင်ဂွင်း
+a robot|робот|စက်ရုပ်
+a ghost|привидение|သရဲ
+an elephant|слон|ဆင်
+a snail|улитка|ခရု
+a shark|акула|ငါးမန်း
+a cactus|кактус|ရှားစောင်းပင်
+a banana|банан|ငှက်ပျောသီး
+a durian|дуриан|ဒူးရင်းသီး
+a pirate|пират|ပင်လယ်ဓားပြ
+a vampire|вампир|ဗန်ပိုင်ယာ
+a snowman|снеговик|ဆီးနှင်းလူရုပ်
+an octopus|осьминог|ရေဘဝဲ
+a giraffe|жираф|သစ်ကုလားအုပ်
+a hamster|хомяк|ဟမ်စတာ
+a crocodile|крокодил|မိကျောင်း
+a frog|лягушка|ဖား
+a teapot|чайник|ရေနွေးကရား
+a sock|носок|ခြေအိတ်
+a pineapple|ананас|နာနတ်သီး
+a wizard|волшебник|မှော်ဆရာ
+a mermaid|русалка|ရေသူမ
+an alien|инопланетянин|ဂြိုဟ်သား
+a pigeon|голубь|ခို
+a cow|корова|နွား
+a tiger|тигр|ကျား
+a mosquito|комар|ခြင်
+a turtle|черепаха|လိပ်
+a lion|лев|ခြင်္သေ့
+a duck|утка|ဘဲ
+a bear|медведь|ဝက်ဝံ
+a rice cooker|рисоварка|ထမင်းပေါင်းအိုး
+a fridge|холодильник|ရေခဲသေတ္တာ
+a cloud|облако|တိမ်
+the Moon|Луна|လ
+a volcano|вулкан|မီးတောင်
+a king|король|ဘုရင်
+a ninja|ниндзя|နင်ဂျာ
+a monkey|обезьяна|မျောက်
+a pig|свинья|ဝက်
+a sheep|овца|သိုး
+a hedgehog|ёжик|ဖြူကောင်
+a carrot|морковка|မုန်လာဥနီ
+a potato|картошка|အာလူး
+a burger|бургер|ဘာဂါ
+a mango|манго|သရက်သီး
+an astronaut|космонавт|အာကာသယာဉ်မှူး
+a scarecrow|пугало|စာခြောက်ရုပ်
+a gecko|геккон|တောက်တဲ့
+an owl|сова|ဇီးကွက်
+a crab|краб|ဂဏန်း
+a mummy|мумия|မမ်မီ
+a lamp|лампа|မီးအိမ်
+a squirrel|белка|ရှဉ့်
+a chicken|курица|ကြက်
+a dinosaur|динозавр|ဒိုင်နိုဆော
+a baby|младенец|ကလေးငယ်
+a teacher|учитель|ဆရာ
+a goldfish|золотая рыбка|ရွှေငါး
+a toaster|тостер|ပေါင်မုန့်ကင်စက်
+a pumpkin|тыква|ရွှေဖရုံသီး
+a camel|верблюд|ကုလားအုပ်
+a bee|пчела|ပျား
+a skeleton|скелет|အရိုးစု
+a cupcake|кекс|ကိတ်မုန့်လေး
+`.trim().split("\n").map(l => l.split("|"));
+const WHAT = `
+at a job interview|на собеседовании|အလုပ်အင်တာဗျူး ဖြေနေတဲ့
+at the dentist|у стоматолога|သွားဆရာဝန်ဆီ ရောက်နေတဲ့
+in a sauna|в сауне|ချွေးထုတ်ခန်းထဲက
+on the Moon|на Луне|လပေါ်က
+on a skateboard|на скейтборде|စကိတ်ဘုတ် စီးနေတဲ့
+in pyjamas|в пижаме|ညဝတ်အင်္ကျီ ဝတ်ထားတဲ့
+doing karate|занимается карате|ကရာတေး လုပ်နေတဲ့
+singing karaoke|поёт караоке|ကာရာအိုကေ ဆိုနေတဲ့
+driving a bus|водит автобус|ဘတ်စ်ကား မောင်းနေတဲ့
+fixing a computer|чинит компьютер|ကွန်ပျူတာ ပြင်နေတဲ့
+doing yoga|занимается йогой|ယောဂ ကျင့်နေတဲ့
+taking a selfie|делает селфи|ဆယ်လ်ဖီ ရိုက်နေတဲ့
+in a bubble bath|в пенной ванне|ဆပ်ပြာမြှုပ်ထဲမှာ ရေချိုးနေတဲ့
+lifting weights|поднимает штангу|အလေး မနေတဲ့
+in a traffic jam|в пробке|ကားကြပ်ထဲ ပိတ်မိနေတဲ့
+at a birthday party|на дне рождения|မွေးနေ့ပွဲ ရောက်နေတဲ့
+with a tiny umbrella|с крошечным зонтиком|ထီးသေးသေးလေး ကိုင်ထားတဲ့
+in sunglasses|в солнечных очках|နေကာမျက်မှန် တပ်ထားတဲ့
+riding a bicycle|едет на велосипеде|စက်ဘီး စီးနေတဲ့
+in a tuxedo|во фраке|ဝတ်စုံပြည့် ဝတ်ထားတဲ့
+at the hairdresser|в парикмахерской|ဆံပင်ညှပ်ဆိုင် ရောက်နေတဲ့
+doing homework|делает домашку|အိမ်စာ လုပ်နေတဲ့
+in a lift|в лифте|ဓာတ်လှေကားထဲက
+with a jetpack|с реактивным ранцем|ဂျက်လွယ်အိတ် ပါတဲ့
+at the night market|на ночном рынке|ညဈေးထဲက
+making tea|заваривает чай|လက်ဖက်ရည် ဖျော်နေတဲ့
+eating noodles|ест лапшу|ခေါက်ဆွဲ စားနေတဲ့
+on a motorbike|на мотоцикле|ဆိုင်ကယ် စီးနေတဲ့
+in a swimming pool|в бассейне|ရေကူးကန်ထဲက
+in the desert|в пустыне|သဲကန္တာရထဲက
+on the beach|на пляже|ကမ်းခြေပေါ်က
+in space|в космосе|အာကာသထဲက
+at a wedding|на свадьбе|မင်္ဂလာဆောင် ရောက်နေတဲ့
+reading a newspaper|читает газету|သတင်းစာ ဖတ်နေတဲ့
+playing chess|играет в шахматы|စစ်တုရင် ကစားနေတဲ့
+brushing teeth|чистит зубы|သွားတိုက်နေတဲ့
+taking a taxi|едет на такси|တက္ကစီ စီးနေတဲ့
+running a marathon|бежит марафон|မာရသွန် ပြေးနေတဲ့
+with a big secret|с большим секретом|လျှို့ဝှက်ချက်ကြီး ရှိတဲ့
+hugging a balloon|обнимает воздушный шарик|ပူဖောင်းကို ဖက်ထားတဲ့
+walking a tightrope|идёт по канату|ကြိုးတန်းပေါ် လမ်းလျှောက်နေတဲ့
+on a roller coaster|на американских горках|ရိုလာကိုစတာ စီးနေတဲ့
+working in an office|работает в офисе|ရုံးမှာ အလုပ်လုပ်နေတဲ့
+selling ice cream|продаёт мороженое|ရေခဲမုန့် ရောင်းနေတဲ့
+conducting an orchestra|дирижирует оркестром|တီးဝိုင်းကို ဦးဆောင်နေတဲ့
+in a hot-air balloon|на воздушном шаре|လေပူပူဖောင်း စီးနေတဲ့
+with a giant moustache|с огромными усами|နှုတ်ခမ်းမွှေးကြီး ပါတဲ့
+in a cardboard box|в картонной коробке|စက္ကူသေတ္တာထဲက
+painting a portrait|рисует портрет|ပုံတူ ဆွဲနေတဲ့
+surfing a big wave|катается на сёрфе|ရေလှိုင်းစီး ကစားနေတဲ့
+in a snowstorm|в метель|နှင်းမုန်တိုင်းထဲက
+at the cinema|в кино|ရုပ်ရှင်ရုံထဲက
+flying a kite|запускает воздушного змея|စွန် လွှတ်နေတဲ့
+knitting a scarf|вяжет шарф|မာဖလာ ထိုးနေတဲ့
+on a throne|на троне|ရာဇပလ္လင်ပေါ်က
+cooking pancakes|печёт блины|ပန်ကိတ် ဖုတ်နေတဲ့
+juggling oranges|жонглирует апельсинами|လိမ္မော်သီးတွေနဲ့ ဂျပ်ဂလင် ကစားနေတဲ့
+sleeping in a teacup|спит в чашке|ခွက်ထဲမှာ အိပ်နေတဲ့
+on a first date|на первом свидании|ပထမဆုံး ချိန်းတွေ့နေတဲ့
+at the gym|в спортзале|အားကစားရုံထဲက
+`.trim().split("\n").map(l => l.split("|"));
+// pairs that aren't absurd enough, or say the same thing twice
+const SKIP = new Set(["the Moon|on the Moon", "the Moon|in space", "an astronaut|in space", "a teacher|at the gym", "a shark|in a swimming pool", "a goldfish|in a swimming pool", "a cloud|in a snowstorm", "a snowman|in a snowstorm", "a camel|in the desert", "a king|on a throne", "a mummy|in the desert", "a duck|in a swimming pool", "a teacher|working in an office"]);
+export function promptOf(id) {
+  const w = WHO[Math.floor(id / 100)], s = WHAT[id % 100];
+  if (!w || !s) return { en: "?", ru: "?", my: "?" };
+  return { en: w[0] + " " + s[0], ru: w[1] + " " + s[1], my: s[2] + " " + w[2] };
+}
+// prompts[id] works for any combination, in the bank or not (decoys may come from outside it)
+export const prompts = new Proxy({}, { get: (_, k) => promptOf(Number(k)) });
+const ALL = [];
+// prompts from the first version of the pack, kept out so the bank is all new
+const USED_BEFORE = new Set([0, 121, 204, 325, 429, 1401, 1530, 1606, 1722, 1808, 1920, 2319, 2624, 2803, 2807, 2905, 3016, 3336, 3810, 4209, 4312, 4539, 4659, 5738, 5827, 5915, 6623]);
+WHO.forEach((w, i) => WHAT.forEach((s, j) => { if (!SKIP.has(w[0] + "|" + s[0]) && !USED_BEFORE.has(i * 100 + j)) ALL.push(i * 100 + j); }));
+const rng = (() => { let a = 20261109; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
+for (let i = ALL.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [ALL[i], ALL[j]] = [ALL[j], ALL[i]]; }
+export const bank = ALL.slice(0, 1200);
+// decoys that look like the truth: same who with another what, same what with another who, and a few random ones
+export function related(id, sameWho, sameWhat, random) {
+  const w = Math.floor(id / 100), s = id % 100, out = new Set();
+  const rand = n => Math.floor(Math.random() * n);
+  for (let t = 0; out.size < sameWho && t < 50; t++) { const c = w * 100 + rand(WHAT.length); if (c !== id && !SKIP.has(WHO[w][0] + "|" + WHAT[c % 100][0])) out.add(c); }
+  for (let t = 0; out.size < sameWho + sameWhat && t < 50; t++) { const c = rand(WHO.length) * 100 + s; if (c !== id && !SKIP.has(WHO[Math.floor(c / 100)][0] + "|" + WHAT[s][0])) out.add(c); }
+  for (let t = 0; out.size < sameWho + sameWhat + random && t < 50; t++) { const c = bank[rand(bank.length)]; if (c !== id && Math.floor(c / 100) !== w && c % 100 !== s) out.add(c); }
+  return [...out];
+}
 
 // ── Ballpark: "answer" line, then the question in English, Russian and Burmese.
 const ESTIMATES = `
@@ -710,8 +728,6 @@ export const finals = blocks(FINAL).map(lines => ({
   c: tri(lines[0].split("|")),
   items: lines.slice(1).map(l => ({ ok: l.startsWith("+"), t: tri(l.replace(/^\+/, "").split("|")) })),
 }));
-export const prompts = PROMPTS.trim().split("\n").map(l => tri(l.split("|")));
-export const words = WORDS.trim().split("\n").map(l => tri(l.split("|")));
 export const estimates = blocks(ESTIMATES).map(l => ({ n: Number(l[0]), q: tri(l.slice(1)) }));
 
 // self-check, run once in the console with checkContent()
@@ -720,8 +736,8 @@ export function checkContent() {
   trivia.forEach((t, i) => LANGS.forEach(L => { if (!t.q[L] || t.a.some(a => !a[L])) bad.push("trivia " + i + " " + L); }));
   finals.forEach((f, i) => { if (f.items.filter(x => x.ok).length < 3 || f.items.filter(x => !x.ok).length < 3) bad.push("final " + i);
     f.items.forEach(x => LANGS.forEach(L => { if (!x.t[L]) bad.push("final item " + i + " " + L); })); });
-  prompts.forEach((p, i) => LANGS.forEach(L => { if (!p[L]) bad.push("prompt " + i + " " + L); }));
-  words.forEach((p, i) => LANGS.forEach(L => { if (!p[L]) bad.push("word " + i + " " + L); }));
+  WHO.forEach((w, i) => { if (w.length !== 3 || w.some(x => !x)) bad.push("who " + i); });
+  WHAT.forEach((w, i) => { if (w.length !== 3 || w.some(x => !x)) bad.push("what " + i); });
   estimates.forEach((e, i) => { if (!Number.isFinite(e.n)) bad.push("estimate " + i); LANGS.forEach(L => { if (!e.q[L]) bad.push("estimate " + i + " " + L); }); });
-  return { words: words.length, trivia: trivia.length, finals: finals.length, prompts: prompts.length, estimates: estimates.length, bad };
+  return { who: WHO.length, what: WHAT.length, combos: ALL.length, bank: bank.length, trivia: trivia.length, finals: finals.length, estimates: estimates.length, bad };
 }

@@ -10,7 +10,7 @@ const ri = n => Math.random() * n | 0;
 export { COLOR_PAIRS };
 const MAXP = () => S.ver === "pair" ? 2 : 8;
 const MINP = 2;
-const TIMED = new Set(["tr_q", "tr_t", "tr_fq", "dd_draw", "dd_lie", "dd_vote", "dd_pick", "bp_q", "bp_bet", "qs_draw", "cc_draw", "cc_copy", "cc_guess"]);
+const TIMED = new Set(["tr_q", "tr_t", "tr_fq", "dd_draw", "dd_lie", "dd_vote", "dd_pick", "bp_q", "bp_bet", "qs_draw", "cc_draw", "cc_copy", "cc_guess", "cc_pguess"]);
 const clean = o => JSON.parse(JSON.stringify(o));
 const name = id => esc(S.players.find(p => p.id === id)?.name || "?");
 const P = id => S.players.find(p => p.id === id);
@@ -120,6 +120,15 @@ function freeAv(av, id) {
   return av;
 }
 const ids = () => S.players.map(p => p.id);
+// drawing prompts this screen hasn't shown yet; it remembers across games and starts over when the bank runs out
+function freshPrompts(n) {
+  let used; try { used = new Set(JSON.parse(localStorage.getItem("gp-used-prompts") || "[]")); } catch { used = new Set(); }
+  let free = C.bank.filter(id => !used.has(id));
+  if (free.length < n) { used = new Set(); free = C.bank.slice(); }
+  const out = shuffle(free).slice(0, n); out.forEach(id => used.add(id));
+  try { localStorage.setItem("gp-used-prompts", JSON.stringify([...used])); } catch { }
+  return out;
+}
 const zeroScores = () => { S.score = {}; ids().forEach(id => S.score[id] = 0); };
 const add = (id, n) => { S.score[id] = (S.score[id] || 0) + n; };
 
@@ -425,9 +434,9 @@ G.dd_intro = { enter() { setTimeout(() => hostLine(S.dd.mode === "pick" ? "ddInt
 VIEW.dd_intro = () => `<div class="dd-intro"><div class="title-card doodle"><h1>${H("ddName")}</h1></div>${bubble(S.dd.mode === "pick" ? "ddIntroPair" : "ddIntro", "big")}</div>`;
 function ddRound() {
   const d = S.dd; d.round++;
-  const free = shuffle([...C.prompts.keys()].filter(i => !d.used.includes(i)));
+  const free = freshPrompts(ids().length);
   const pairs = shuffle(COLOR_PAIRS);
-  ids().forEach((id, i) => { d.prompts[id] = free[i]; d.used.push(free[i]); d.cols[id] = pairs[i % pairs.length]; });
+  ids().forEach((id, i) => { d.prompts[id] = free[i]; d.cols[id] = pairs[i % pairs.length]; });
   go("dd_draw", 90);
 }
 VIEW.dd_draw = () => `<div class="dd-draw"><div class="easel big">${PAINTER}</div><h2>${H("drawing")}</h2>
@@ -445,7 +454,7 @@ function ddNext() {
   if (d.di >= d.order.length) return go("dd_sc", 8);
   d.votes = {}; d.reject = {}; d.opts = [];
   if (d.mode === "pick") {
-    const others = shuffle([...C.prompts.keys()].filter(i => i !== truthIdx())).slice(0, 3);
+    const others = C.related(truthIdx(), 1, 1, 1);
     d.popts = shuffle([truthIdx(), ...others]);
     go("dd_pick", 25);
   } else go("dd_lie", 50);
@@ -471,7 +480,7 @@ G.dd_lie = { secs: 50, need: () => ids().filter(id => id !== artist()),
       const t = String(IN[id].t).trim().slice(0, 60); const same = opts.find(o => norm(o.t) === norm(t));
       if (same && !same.truth) same.by.push(id); else if (!same) opts.push({ t, truth: false, by: [id] });
     });
-    while (opts.length < 4) { const x = C.prompts[ri(C.prompts.length)][S.ver]; if (!opts.some(o => norm(o.t) === norm(x))) opts.push({ t: x, truth: false, by: [], house: true }); }
+    for (const h of C.related(truthIdx(), 2, 2, 2)) { if (opts.length >= 4) break; const x = C.prompts[h][S.ver]; if (!opts.some(o => norm(o.t) === norm(x))) opts.push({ t: x, truth: false, by: [], house: true }); }
     d.opts = shuffle(opts);
     go("dd_vote", 25);
   } };
@@ -587,7 +596,7 @@ G.bp_rev = { enter() { sfx("drum"); setTimeout(() => sfx("cheer"), 1300); }, end
 
 // ═════════ QUICK SKETCH ═════════
 // One player draws live; the strokes stream to the big screen. Everyone else races to pick the answer.
-const QS_SECS = 60;
+const QS_SECS = 75;
 function startQuick() {
   const n = S.players.length, per = n <= 2 ? 3 : n <= 4 ? 2 : 1;
   const order = []; for (let r = 0; r < per; r++) order.push(...shuffle(ids()));
@@ -600,8 +609,7 @@ const drawer = () => S.qs.order[S.qs.i];
 function qsNext() {
   const q = S.qs; q.i++;
   if (q.i >= q.order.length) return results();
-  const free = shuffle([...C.words.keys()].filter(i => !q.used.includes(i)));
-  q.word = free[0]; q.used.push(q.word); q.opts = shuffle([q.word, ...free.slice(1, 6)]);
+  q.word = freshPrompts(1)[0]; q.opts = shuffle([q.word, ...C.related(q.word, 2, 2, 1)]);
   q.col = (q.i * 3 + 1) % COLOR_PAIRS.length; q.got = {}; q.dpts = 0; LIVE = ""; FIRST = {};
   go("qs_draw", QS_SECS);
 }
@@ -624,58 +632,100 @@ G.qs_draw = { secs: QS_SECS, need: () => ids().filter(id => id !== drawer()), en
   } };
 VIEW.qs_rev = () => { const q = S.qs;
   return `<div class="qs rev"><div class="board"><canvas id="live" width="900" height="900"></canvas><div class="by">${critter(P(drawer()).av, q.dpts ? "happy" : "sad")}<b>${name(drawer())}</b>${q.dpts ? `<em>+${q.dpts}</em>` : ""}</div></div>
-  <div class="side"><p class="sub">${H("theWord")}</p><h2 class="word">${H(C.words[q.word])}</h2>
+  <div class="side"><p class="sub">${H("theWord")}</p><h2 class="word">${H(C.prompts[q.word])}</h2>
   <div class="racers">${ids().filter(id => id !== drawer()).map(id => `<div class="gq ${q.got[id] ? "ok" : "no"}">${critter(P(id).av, q.got[id] ? "happy" : "sad")}<b>${name(id)}</b><i>${q.got[id] ? "+" + q.got[id] : "✗"}</i></div>`).join("")}</div></div></div>`; };
 VIEW_AFTER.qs_rev = () => paintLive();
 G.qs_rev = { enter() { sfx(Object.values(S.qs.got).some(Boolean) ? "ding" : "buzz"); }, end: qsNext };
 
 // ═════════ COPYCAT ═════════
-// Every player starts a chain with a secret title. The drawings rotate: look for six seconds, redraw from memory.
-// At the end everyone except the chain's first artist guesses the original title from the last copy.
-const CC_DRAW = 50, CC_COPY = 51;
+// Drawings are copied from memory, and every copy is harder than the last:
+//   level 1: look for 6 seconds; level 2: only 3 seconds; level 3: draw blind, the lines stay invisible until the end.
+// Three players or more: one chain per player that goes round the table, then everyone guesses each chain's first title.
+// Two players: three rounds; each round both draw a new title, swap and copy once (level = round), then guess.
+export const CC_LV = { 1: { view: 6, draw: 45 }, 2: { view: 3, draw: 35 }, 3: { view: 4, draw: 40, blind: true } };
+const CC_DRAW = 50, ccSecs = lv => CC_LV[lv].view + CC_LV[lv].draw + 1;
 function startCopy() {
-  const order = shuffle(ids()), n = order.length, pr = shuffle([...C.prompts.keys()]);
-  S.cc = { order, L: n === 2 ? 4 : Math.min(n, 4), j: 0, prompts: order.map((_, i) => pr[i]), cols: order.map((_, i) => (i * 3 + 2) % COLOR_PAIRS.length), docs: {}, assign: {}, ci: -1, opts: [], got: {} };
-  order.forEach((_, c) => S.cc.docs["c" + c] = []);
+  const order = shuffle(ids()), n = order.length, pair = n === 2;
+  S.cc = { order, pair, round: 0, rounds: pair ? 3 : 1, L: pair ? 2 : Math.min(n, 4), j: 0, chains: [], assign: {}, ci: -1, got: {} };
   go("cc_intro", 11);
 }
-G.cc_intro = { enter() { setTimeout(() => hostLine("ccIntro"), 600); }, end: () => ccStep(0) };
-VIEW.cc_intro = () => `<div class="dd-intro"><div class="title-card doodle"><h1>${H("ccName")}</h1></div>${bubble("ccIntro", "big")}</div>`;
-const lastDoc = c => [...S.cc.docs["c" + c]].reverse().find(Boolean) || "";
+G.cc_intro = { enter() { setTimeout(() => hostLine(S.cc.pair ? "ccIntroPair" : "ccIntro"), 600); }, end: ccRound };
+VIEW.cc_intro = () => `<div class="dd-intro"><div class="title-card doodle"><h1>${H("ccName")}</h1></div>${bubble(S.cc.pair ? "ccIntroPair" : "ccIntro", "big")}</div>`;
+function ccRound() {
+  const cc = S.cc; cc.round++;
+  const pr = freshPrompts(cc.order.length);
+  cc.first = cc.chains.length;
+  cc.order.forEach((id, i) => cc.chains.push({ by: id, p: pr[i], col: (cc.chains.length * 3 + 2) % COLOR_PAIRS.length, docs: [], opts: [], guesser: "", got: {} }));
+  ccStep(0);
+}
+const lastDoc = c => [...S.cc.chains[c].docs].reverse().find(Boolean) || "";
+const roundChains = () => S.cc.chains.slice(S.cc.first);
 function ccStep(j) {
   const cc = S.cc, n = cc.order.length; cc.j = j; cc.assign = {};
-  cc.order.forEach((id, i) => { const c = ((i - j) % n + n) % n; cc.assign[id] = { c, prev: j ? lastDoc(c) : "", doc: `${id}_c${c}s${j}` }; });
-  go(j ? "cc_copy" : "cc_draw", j ? CC_COPY : CC_DRAW);
+  cc.lv = cc.pair ? cc.round : j;
+  cc.order.forEach((id, i) => { const c = cc.first + ((i - j) % n + n) % n; cc.assign[id] = { c, prev: j ? lastDoc(c) : "", doc: `${id}_c${c}s${j}`, lv: j ? cc.lv : 0 }; });
+  go(j ? "cc_copy" : "cc_draw", j ? ccSecs(cc.lv) : CC_DRAW);
 }
-function ccCollect() { const cc = S.cc; for (const id in cc.assign) { const a = cc.assign[id]; cc.docs["c" + a.c].push(ARTX[a.doc] ? a.doc : ""); } }
-const ccEnd = () => { ccCollect(); if (S.cc.j + 1 < S.cc.L) ccStep(S.cc.j + 1); else { S.cc.ci = -1; ccNext(); } };
-VIEW.cc_draw = () => `<div class="dd-draw"><div class="easel big">${COPIER}</div><h2>${H("drawing")}</h2>
+function ccCollect() { const cc = S.cc; for (const id in cc.assign) { const a = cc.assign[id]; cc.chains[a.c].docs.push(ARTX[a.doc] ? a.doc : ""); } }
+function ccEnd() {
+  ccCollect();
+  const cc = S.cc;
+  if (cc.j + 1 < cc.L) return ccStep(cc.j + 1);
+  if (cc.pair) return ccGuessPair();
+  cc.ci = cc.first - 1; ccNext();
+}
+VIEW.cc_draw = () => `<div class="dd-draw"><div class="easel big">${COPIER}</div><h2>${H("drawing")}</h2>${S.cc.pair ? `<p class="steplbl">${H1("round")} ${S.cc.round} / ${S.cc.rounds}</p>` : ""}
   <div class="sketchers">${S.players.map((p, i) => `<div class="sk" style="--d:${i * 80}ms"><div class="av">${critter(p.av, "idle")}</div><div class="pencil">✏️</div></div>`).join("")}</div></div>`;
-VIEW.cc_copy = () => `<div class="dd-draw"><div class="easel big">${COPIER}</div><h2>${H("copying")}</h2><p class="steplbl">${H1("step")} ${S.cc.j + 1} / ${S.cc.L}</p>
-  <div class="sketchers">${S.players.map((p, i) => `<div class="sk" style="--d:${i * 80}ms"><div class="av">${critter(p.av, "shock")}</div><div class="pencil">👀</div></div>`).join("")}</div></div>`;
+VIEW.cc_copy = () => `<div class="dd-draw"><div class="easel big">${COPIER}</div><h2>${H("copying")}</h2>
+  <div class="lvl lv${S.cc.lv}"><b>${H1("level")} ${S.cc.lv}</b><span>${H("lv" + S.cc.lv)}</span></div>
+  <div class="sketchers">${S.players.map((p, i) => `<div class="sk" style="--d:${i * 80}ms"><div class="av">${critter(p.av, "shock")}</div><div class="pencil">${S.cc.lv === 3 ? "🙈" : "👀"}</div></div>`).join("")}</div></div>`;
 G.cc_draw = { secs: CC_DRAW, need: ids, enter() { sfx("scribble"); }, end: ccEnd };
-G.cc_copy = { secs: CC_COPY, need: ids, enter() { sfx("whoosh"); }, end: ccEnd };
+G.cc_copy = { get secs() { return ccSecs(S.cc.lv); }, need: ids, enter() { sfx("whoosh"); }, end: ccEnd };
+const chainCols = c => COLOR_PAIRS[S.cc.chains[c].col];
+const ccOpts = p => shuffle([p, ...C.related(p, 1, 1, 1)]);
+
+// three or more: guess each chain in turn from its last copy
 function ccNext() {
   const cc = S.cc; cc.ci++;
-  while (cc.ci < cc.order.length && !lastDoc(cc.ci)) cc.ci++;
-  if (cc.ci >= cc.order.length) return results();
-  const truth = cc.prompts[cc.ci];
-  cc.opts = shuffle([truth, ...shuffle([...C.prompts.keys()].filter(i => i !== truth)).slice(0, 3)]); cc.got = {};
+  while (cc.ci < cc.chains.length && !lastDoc(cc.ci)) cc.ci++;
+  if (cc.ci >= cc.chains.length) return results();
+  const ch = cc.chains[cc.ci]; ch.opts = ccOpts(ch.p);
   go("cc_guess", 20);
 }
-const chainCols = c => COLOR_PAIRS[S.cc.cols[c]];
-VIEW.cc_guess = () => `<div class="dd-vote pick"><div class="polaroid big"><canvas id="art" width="800" height="800"></canvas><div class="tape"></div><div class="by"><b>${H1("step")} ${S.cc.L} / ${S.cc.L}</b></div></div>
-  <div class="side"><h2>${H("guessOrig")}</h2><div class="notes four">${S.cc.opts.map((p, i) => `<div class="note n${i}" style="--d:${i * 120}ms">${H(C.prompts[p])}</div>`).join("")}</div></div></div>`;
+VIEW.cc_guess = () => { const ch = S.cc.chains[S.cc.ci];
+  return `<div class="dd-vote pick"><div class="polaroid big"><canvas id="art" width="800" height="800"></canvas><div class="tape"></div><div class="by"><b>${H1("step")} ${S.cc.L} / ${S.cc.L}</b></div></div>
+  <div class="side"><h2>${H("guessOrig")}</h2><div class="notes four">${ch.opts.map((p, i) => `<div class="note n${i}" style="--d:${i * 120}ms">${H(C.prompts[p])}</div>`).join("")}</div></div></div>`; };
 VIEW_AFTER.cc_guess = () => { const cv = document.getElementById("art"); if (cv) replay(cv, ARTX[lastDoc(S.cc.ci)], chainCols(S.cc.ci), true); };
-G.cc_guess = { secs: 20, need: () => ids().filter(id => id !== S.cc.order[S.cc.ci]), end() {
-  const cc = S.cc, truth = cc.prompts[cc.ci], artists = [...new Set(cc.docs["c" + cc.ci].filter(Boolean).map(d => d.split("_")[0]))];
-  ids().filter(id => id !== cc.order[cc.ci]).forEach(id => { const g = IN[id]; if (!g) return; const ok = cc.opts[g.v] === truth; cc.got[id] = ok ? 500 : 0; if (ok) { add(id, 500); artists.forEach(a => add(a, 200)); } });
-  go("cc_rev", 4 + cc.docs["c" + cc.ci].filter(Boolean).length * 2.4);
+G.cc_guess = { secs: 20, need: () => ids().filter(id => id !== S.cc.chains[S.cc.ci].by), end() {
+  const cc = S.cc, ch = cc.chains[cc.ci], artists = [...new Set(ch.docs.filter(Boolean).map(d => d.split("_")[0]))];
+  ids().filter(id => id !== ch.by).forEach(id => { const g = IN[id]; if (!g) return; const ok = ch.opts[g.v] === ch.p; ch.got[id] = ok ? 500 : 0; if (ok) { add(id, 500); artists.forEach(a => add(a, 200)); } });
+  go("cc_rev", 4 + ch.docs.filter(Boolean).length * 2.4);
 } };
-VIEW.cc_rev = () => { const cc = S.cc, docs = cc.docs["c" + cc.ci].filter(Boolean);
-  return `<div class="cc-rev"><div class="chain">
-    <div class="link prompt" style="--d:0ms"><small>${H1("original")}</small><b>${H(C.prompts[cc.prompts[cc.ci]])}</b><span>${critter(P(cc.order[cc.ci]).av, "happy")}${name(cc.order[cc.ci])}</span></div>
-    ${docs.map((d, k) => `<div class="link" style="--d:${800 + k * 2400}ms"><canvas data-doc="${d}" width="420" height="420"></canvas><span>${critter(P(d.split("_")[0]).av, "idle")}${name(d.split("_")[0])}</span></div>`).join("")}</div>
-    <div class="guessline" style="--d:${800 + docs.length * 2400}ms">${ids().filter(id => id !== cc.order[cc.ci]).map(id => `<span class="${cc.got[id] ? "ok" : "no"}">${critter(P(id).av, cc.got[id] ? "happy" : "sad")}${name(id)} ${cc.got[id] ? "✓" : "✗"}</span>`).join("")}</div></div>`; };
-VIEW_AFTER.cc_rev = () => { const cols = chainCols(S.cc.ci); document.querySelectorAll(".cc-rev canvas[data-doc]").forEach((cv, k) => setTimeout(() => { if (!cv.isConnected) return; replay(cv, ARTX[cv.dataset.doc], cols, true); sfx("reveal"); }, 800 + k * 2400)); };
+const linkCard = (ch, d, k, delay) => `<div class="link" style="--d:${delay}ms"><canvas data-doc="${d}" data-c="${ch}" width="420" height="420"></canvas><span class="author">${critter(P(d.split("_")[0]).av, "idle")}${name(d.split("_")[0])}</span></div>`;
+const promptCard = (ch, delay) => `<div class="link prompt" style="--d:${delay}ms"><small>${H1("original")}</small><b>${H(C.prompts[S.cc.chains[ch].p])}</b><span class="author">${critter(P(S.cc.chains[ch].by).av, "happy")}${name(S.cc.chains[ch].by)}</span></div>`;
+VIEW.cc_rev = () => { const cc = S.cc, ch = cc.chains[cc.ci], docs = ch.docs.filter(Boolean);
+  return `<div class="cc-rev"><div class="chain">${promptCard(cc.ci, 0)}${docs.map((d, k) => linkCard(cc.ci, d, k, 800 + k * 2400)).join("")}</div>
+    <div class="guessline" style="--d:${800 + docs.length * 2400}ms">${ids().filter(id => id !== ch.by).map(id => `<span class="${ch.got[id] ? "ok" : "no"}">${critter(P(id).av, ch.got[id] ? "happy" : "sad")}${name(id)} ${ch.got[id] ? "✓" : "✗"}</span>`).join("")}</div></div>`; };
+function revealCanvases(step) { document.querySelectorAll(".cc-rev canvas[data-doc]").forEach((cv, k) => { const cols = chainCols(+cv.dataset.c); setTimeout(() => { if (!cv.isConnected) return; replay(cv, ARTX[cv.dataset.doc], cols, true); sfx("reveal"); }, 800 + k * step); }); }
+VIEW_AFTER.cc_rev = () => revealCanvases(2400);
 G.cc_rev = { end: ccNext };
+
+// two players: each guesses the title of the drawing they just copied
+function ccGuessPair() {
+  const cc = S.cc;
+  roundChains().forEach((ch, k) => { const c = cc.first + k; ch.opts = ccOpts(ch.p); ch.guesser = Object.keys(cc.assign).find(id => cc.assign[id].c === c) || ""; });
+  go("cc_pguess", 20);
+}
+VIEW.cc_pguess = () => `<div class="dd-draw"><div class="easel big">${COPIER}</div><h2>${H("guessOrig")}</h2><p class="steplbl">${H1("round")} ${S.cc.round} / ${S.cc.rounds}</p>
+  <div class="sketchers">${S.players.map((p, i) => `<div class="sk" style="--d:${i * 80}ms"><div class="av">${critter(p.av, "idle")}</div><div class="pencil">🤔</div></div>`).join("")}</div></div>`;
+G.cc_pguess = { secs: 20, need: ids, end() {
+  const cc = S.cc;
+  roundChains().forEach(ch => { const g = IN[ch.guesser]; const ok = g && ch.opts[g.v] === ch.p; ch.got = { [ch.guesser]: ok ? 500 : 0 }; ch.guess = g ? ch.opts[g.v] : -1; if (ok) { add(ch.guesser, 500); add(ch.by, 300); } });
+  go("cc_prev", 9);
+} };
+VIEW.cc_prev = () => { const cc = S.cc;
+  return `<div class="cc-rev pair"><div class="lvl lv${cc.round}"><b>${H1("level")} ${cc.round}</b><span>${H("lv" + cc.round)}</span></div>${roundChains().map((ch, k) => { const c = cc.first + k, docs = ch.docs.filter(Boolean);
+    return `<div class="chain">${promptCard(c, k * 600)}${docs.map((d, m) => linkCard(c, d, m, 600 + k * 600 + m * 1400)).join("")}
+      <div class="vcard ${ch.got[ch.guesser] ? "good" : "bad"}" style="--d:${1800 + k * 600}ms">${ch.guesser ? `${critter(P(ch.guesser).av, ch.got[ch.guesser] ? "happy" : "sad")}<b>${name(ch.guesser)}</b><em>${ch.got[ch.guesser] ? "✓ +500" : "✗ " + (ch.guess >= 0 ? H(C.prompts[ch.guess]) : "—")}</em>` : ""}</div></div>`; }).join("")}</div>`; };
+VIEW_AFTER.cc_prev = () => revealCanvases(1400);
+G.cc_prev = { enter() { setTimeout(() => sfx(roundChains().some(ch => ch.got[ch.guesser]) ? "ding" : "buzz"), 1800); }, end() { if (S.cc.round < S.cc.rounds) ccRound(); else results(); } };
