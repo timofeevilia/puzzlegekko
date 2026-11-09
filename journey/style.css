@@ -1,7 +1,7 @@
 /* 81 Trials: rice paper, ink, vermilion seals and gold, in the manner of a mounted hand scroll. */
 :root{
   --paper:#f4ead4; --paper2:#ebdfc3; --silk:#e3d3ae; --ink:#1b1a17; --ink2:#4a443a; --red:#b8322a; --red2:#8f2219; --gold:#c9a24a; --jade:#3f7d6a;
-  --brush:"Ma Shan Zheng","Noto Serif SC","STKaiti","KaiTi",serif; --head:"Cormorant Garamond",Georgia,serif; --body:"Noto Serif",Georgia,serif;
+  --brush:"Ma Shan Zheng","Noto Serif SC","STKaiti","KaiTi",serif; --head:"Cormorant Garamond","Noto Sans Myanmar",Georgia,serif; --body:"Noto Serif","Noto Sans Myanmar",Georgia,serif;
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -224,3 +224,13 @@ a{color:inherit}
   .tmain{gap:26px}
   .paper{padding:16px}
 }
+/* Burmese needs room for stacked vowel marks */
+html[lang="my"] body{line-height:1.8}
+html[lang="my"] .thead h2,html[lang="my"] .tbox h1,html[lang="my"] .maphead h2,html[lang="my"] .resin h2{font-family:"Noto Sans Myanmar",serif;font-weight:700;line-height:1.5}
+html[lang="my"] .tbox h1{font-size:clamp(30px,5vw,46px)}
+html[lang="my"] .thead h2{font-size:clamp(22px,4vw,32px)}
+html[lang="my"] .dlgtext b{font-family:"Noto Sans Myanmar",serif;font-size:18px}
+html[lang="my"] .person b{font-family:"Noto Sans Myanmar",serif;font-size:15px}
+html[lang="my"] .stagecap{font-family:"Noto Sans Myanmar",serif;font-size:16px}
+[lang="my"].link{font-family:"Noto Sans Myanmar",serif}
+html[lang="my"] .resin .kick{font-family:"Noto Sans Myanmar",serif;font-size:16px}

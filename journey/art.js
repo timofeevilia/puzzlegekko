@@ -83,14 +83,14 @@ export const BUST = {
     <path d="M56 104q24 20 48 0q-4 20-24 22-20-2-24-22z" fill="#e8e2d6" ${sw}/>`,
 };
 export const NAMES = {
-  wukong: { ru: "Сунь Укун", en: "Sun Wukong", zh: "孙悟空" },
-  bajie: { ru: "Чжу Бацзе", en: "Zhu Bajie", zh: "猪八戒" },
-  sha: { ru: "Ша Сэн", en: "Sha Wujing", zh: "沙悟净" },
-  tang: { ru: "Танский монах", en: "Tang Sanzang", zh: "唐三藏" },
-  baigu: { ru: "Белая Кость", en: "White Bone Demon", zh: "白骨精" },
-  fan: { ru: "Принцесса Железный Веер", en: "Princess Iron Fan", zh: "铁扇公主" },
-  spider: { ru: "Паучиха", en: "Spider Spirit", zh: "蜘蛛精" },
-  monk: { ru: "Даос Чжэньюань", en: "Master Zhenyuan", zh: "镇元子" },
+  wukong: { ru: "Сунь Укун", en: "Sun Wukong", my: "ဆွန်ဝူခုန်း", zh: "孙悟空" },
+  bajie: { ru: "Чжу Бацзе", en: "Zhu Bajie", my: "ကျူပါကျဲ", zh: "猪八戒" },
+  sha: { ru: "Ша Сэн", en: "Sha Wujing", my: "ရှာဝူကျင်း", zh: "沙悟净" },
+  tang: { ru: "Танский монах", en: "Tang Sanzang", my: "ထန်ဘုန်းကြီး", zh: "唐三藏" },
+  baigu: { ru: "Белая Кость", en: "White Bone Demon", my: "အရိုးဖြူ နတ်ဆိုးမ", zh: "白骨精" },
+  fan: { ru: "Принцесса Железный Веер", en: "Princess Iron Fan", my: "သံယပ်တောင် မင်းသမီး", zh: "铁扇公主" },
+  spider: { ru: "Паучиха", en: "Spider Spirit", my: "ပင့်ကူ နတ်ဆိုးမ", zh: "蜘蛛精" },
+  monk: { ru: "Даос Чжэньюань", en: "Master Zhenyuan", my: "ကျန်ယွမ်ဇီ ဆရာ", zh: "镇元子" },
 };
 export const bust = (id, cls = "") => `<svg class="bust ${cls}" viewBox="0 0 160 180" aria-hidden="true">${BUST[id]}</svg>`;
 
