@@ -6,7 +6,7 @@
 <title>PuzzleGekko</title>
 <meta name="description" content="Small games for two and for groups: a property game set in Thailand and Myanmar, party games for phones, a Thai course and a Russian–Burmese listening puzzle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Ma+Shan+Zheng&family=Cormorant+Garamond:wght@700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
 <style>
 /* Layout: one column; a big wordmark with a gecko, then one wide card per game showing a slice of that game's own look. */
 :root{
@@ -82,6 +82,15 @@ h1 span{color:var(--skin)}
 .eq .t>span{display:block;font-family:var(--display);font-weight:800;font-size:clamp(28px,4.6vw,40px);margin:6px 0 12px}
 .eq .seats{display:flex;gap:8px;justify-content:center}
 .eq .seats i{font-style:normal;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--c) 40%,transparent)}
+/* 81 Trials slice: ink mountains on rice paper with red seals */
+.xy{background:linear-gradient(#efe4cc,#e3d2ae)}
+.xy .hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:55%}
+.xy .sun{position:absolute;right:16%;top:16%;width:54px;height:54px;border-radius:50%;background:#c23a2b;opacity:.85}
+.xy .t{position:relative;display:flex;align-items:center;gap:18px;color:#1b1a17}
+.xy .v{writing-mode:vertical-rl;font-family:"Ma Shan Zheng",serif;font-size:58px;line-height:1}
+.xy .r{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.xy .r b{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(28px,4.4vw,40px);font-weight:700;line-height:1}
+.xy .r span{background:#b8322a;color:#f6e7c8;font-family:"Ma Shan Zheng",serif;font-size:20px;padding:4px 8px;border-radius:4px}
 /* Merit Academy slice: a gold crest on navy, with a red exam stamp */
 .ma{background:radial-gradient(400px 260px at 70% 0%,rgba(201,162,39,.18),transparent 70%),#0f1424}
 .ma .t{text-align:center;color:#eae6da;position:relative}
@@ -152,6 +161,16 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
         <p>Party games for a group: one big screen shows the game, everyone plays from their phone. Five games: a trivia night on a haunted train where wrong answers lead to deadly trials, three drawing games (bluffing, live speed-guessing, copying from memory) and a guess-the-number show.</p>
         <div class="facts"><span>2–8 players</span><span>Phones + TV or laptop</span><span>English · Русский · မြန်မာ</span><span>15–30 min</span></div>
         <span class="play">Start a party →</span>
+      </div>
+    </a>
+
+    <a class="game" href="journey/">
+      <div class="art xy"><i class="sun"></i><svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120V58q30-30 60-10t50-34q30 30 60 26t50-28q40 36 80 30t50-14q30 10 50 40v52z" fill="#9aa39a" opacity=".8"/><path d="M0 120V86q40-26 80-8t70-24q40 24 80 18t60-26q40 24 110 34v40z" fill="#5d6862"/><path d="M0 120v-18q60-16 120-2t100-10q60 10 100 2t80 6v22z" fill="#3b443f"/></svg><div class="t"><span class="v">西游记</span><div class="r"><b>81 Trials</b><span>九九八十一难</span></div></div></div>
+      <div class="info">
+        <h2>81 Trials · <span class="mm" style="font-family:'Ma Shan Zheng',serif">西游记</span></h2>
+        <p>A puzzle journey to the West in traditional ink-and-scroll style. The Tang monk and his disciples face the calamities of the road, and each one is a logic puzzle: lift the talisman of Five Elements Mountain, find the fake ginseng fruit, unmask the White Bone Demon, cross the Tongtian River.</p>
+        <div class="facts"><span>1 player</span><span>Logic puzzles</span><span>Русский · English</span><span>6 of 81 trials</span></div>
+        <span class="play">Set out →</span>
       </div>
     </a>
 
