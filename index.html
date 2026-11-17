@@ -4,11 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PuzzleGekko</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="description" content="Small games for two and for groups: a property game set in Thailand and Myanmar, party games for phones, a Thai course and a Russian–Burmese listening puzzle.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Ma+Shan+Zheng&family=Cormorant+Garamond:wght@700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Manrope:wght@400;600;800&family=Noto+Sans+Myanmar:wght@500&family=Noto+Sans+Thai:wght@500&family=Sarabun:wght@700&display=swap">
 <style>
-/* Layout: one column; a big wordmark with a gecko, then one wide card per game showing a slice of that game's own look. */
+/* Layout: a big wordmark with a gecko, then a grid of tiles, each showing a slice of that game's own look. */
 :root{
   --leaf:#0f2a20;      /* page ground, rainforest night */
   --leaf-2:#163a2c;    /* raised surfaces */
@@ -32,26 +35,37 @@ body{margin:0;font-family:var(--body);font-size:16px;line-height:1.55;min-height
     var(--leaf)}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--spot);outline-offset:3px;border-radius:6px}
-.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
 header{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-top:12px}
 .gecko{width:clamp(64px,12vw,96px);height:auto;flex:none;animation:wiggle 6s ease-in-out infinite;transform-origin:50% 60%}
 @keyframes wiggle{0%,86%,100%{transform:rotate(0)}90%{transform:rotate(-6deg)}94%{transform:rotate(5deg)}}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(44px,9vw,96px);line-height:.9;margin:0;letter-spacing:-.03em}
 h1 span{color:var(--skin)}
 .tag{margin:6px 0 0;color:var(--ink-dim);max-width:52ch;text-wrap:balance}
-.games{display:grid;gap:18px}
-.game{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);border-radius:20px;overflow:hidden;text-decoration:none;
+.games{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
+.game{display:flex;flex-direction:column;border-radius:18px;overflow:hidden;text-decoration:none;
   border:1px solid var(--line);background:var(--leaf-2);transition:transform .15s, border-color .15s}
 .game:hover{transform:translateY(-3px);border-color:rgba(126,217,87,.55)}
-@media (max-width:760px){.game{grid-template-columns:minmax(0,1fr)}}
-.art{min-height:220px;position:relative;display:grid;place-items:center;padding:24px;overflow:hidden}
-.info{padding:24px 26px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.info h2{font-family:var(--display);font-weight:800;font-size:32px;line-height:1;margin:0;letter-spacing:-.02em}
-.info p{margin:0;color:var(--ink-dim)}
-.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
-.facts span{font-size:12.5px;font-weight:800;padding:4px 10px;border-radius:99px;background:rgba(126,217,87,.1);color:var(--skin)}
-.play{margin-top:auto;align-self:flex-start;font-weight:800;color:var(--leaf);background:var(--skin);padding:10px 20px;border-radius:99px}
-
+.art{aspect-ratio:16/9;position:relative;display:grid;place-items:center;padding:16px;overflow:hidden;container-type:size}
+.art>.t,.art>.two{transform:scale(var(--s,.86))}
+.info{padding:14px 18px 16px;display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
+.info h2{font-family:var(--display);font-weight:800;font-size:23px;line-height:1.1;margin:0;letter-spacing:-.02em}
+.info p{margin:0;color:var(--ink-dim);font-size:14.5px;line-height:1.5}
+.facts{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:4px}
+.facts span{font-size:12px;font-weight:800;padding:3px 9px;border-radius:99px;background:rgba(126,217,87,.1);color:var(--skin)}
+.facts .new{background:var(--spot);color:var(--leaf)}
+/* phones: two narrow tiles per row, art and title first */
+@media (max-width:620px){
+  .games{grid-template-columns:1fr 1fr;gap:10px}
+  .game{border-radius:14px}
+  .art{aspect-ratio:4/3;padding:8px}
+  .game .art>.t,.game .art>.two{position:absolute;left:50%;top:50%;width:330px;max-width:none;transform:translate(-50%,-50%) scale(.5)}
+  .info{padding:10px 11px 12px;gap:5px}
+  .info h2{font-size:16.5px}
+  .info p{font-size:12.5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .facts span{font-size:10.5px;padding:2px 7px}
+  .facts span:nth-child(n+3){display:none}
+}
 /* Golden Land slice: lacquer board corner */
 .gl{background:radial-gradient(circle at 50% 50%,#b8382a,#7a1c12 70%,#4a0f08)}
 .gl::before{content:"";position:absolute;inset:-40%;background:repeating-conic-gradient(rgba(230,180,76,.09) 0 6deg,transparent 6deg 12deg)}
@@ -138,9 +152,8 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
       <div class="art gl"><div class="t"><b>Golden Land</b><i><span class="mm">ရွှေပြည်</span> · <span class="th">แผ่นดินทอง</span></i><div class="dice"><i></i><i></i></div></div></div>
       <div class="info">
         <h2>Golden Land</h2>
-        <p>A property-trading board game across Thailand and Myanmar: 22 real places from Hpa-An to the Grand Palace, buyouts, a gem market, festival mini-games and rules you pick before each game.</p>
+        <p>A property-trading board game across Thailand and Myanmar: 22 real places, buyouts, a gem market and festival mini-games.</p>
         <div class="facts"><span>2 players</span><span>Online or one device</span><span>English</span><span>45–90 min</span></div>
-        <span class="play">Play Golden Land →</span>
       </div>
     </a>
 
@@ -148,9 +161,8 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
       <div class="art st"><div class="t"><b class="thx">ภาษาไทย</b><i>khàwp-khun · <span class="mm">ခေါက်ခွန်</span></i><div class="tones"><i style="--c:#7a8794"></i><i style="--c:#3b6fd1"></i><i style="--c:#c2412d"></i><i style="--c:#d9577f"></i><i style="--c:#2f8f4e"></i></div></div></div>
       <div class="info">
         <h2>Sabai Thai · <span class="mm">ထိုင်းစကား</span></h2>
-        <p>Learn Thai from Burmese: 386 words, including electronics and factory vocabulary, with Thai audio and Burmese and English sounds, daily spaced-repetition lessons, a tone trainer, the Thai alphabet, market prices and a phrasebook. Progress is saved to your account.</p>
-        <div class="facts"><span>Learning</span><span>Burmese · English</span><span>Google or study code</span><span>10 min a day</span></div>
-        <span class="play">Start learning →</span>
+        <p>Learn Thai from Burmese: 386 words with Thai audio, daily spaced-repetition lessons, a tone trainer and the alphabet.</p>
+        <div class="facts"><span>Learning</span><span>Burmese · English</span><span>10 min a day</span></div>
       </div>
     </a>
 
@@ -158,9 +170,8 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
       <div class="art gp"><div class="t"><div class="tiles"><i style="background:#e8434f">P</i><i style="background:#ff9a1f">A</i><i style="background:#2fb5ff">R</i><i style="background:#9a7bff">T</i><i style="background:#7ed957;color:#1d1233">Y</i></div><small>🚂 Last Train · 🎨 Doodle Lies · 🦉 Ballpark · ✏️ Quick Sketch · 🖨️ Copycat</small></div></div>
       <div class="info">
         <h2>Gekko Party</h2>
-        <p>Party games for a group: one big screen shows the game, everyone plays from their phone. Five games: a trivia night on a haunted train where wrong answers lead to deadly trials, three drawing games (bluffing, live speed-guessing, copying from memory) and a guess-the-number show.</p>
-        <div class="facts"><span>2–8 players</span><span>Phones + TV or laptop</span><span>English · Русский · မြန်မာ</span><span>15–30 min</span></div>
-        <span class="play">Start a party →</span>
+        <p>One big screen shows the game, everyone plays from their phone: a haunted-train trivia night, three drawing games and a guess-the-number show.</p>
+        <div class="facts"><span>2–8 players</span><span>Phones + TV</span><span>EN · RU · MY</span><span>15–30 min</span></div>
       </div>
     </a>
 
@@ -168,9 +179,8 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
       <div class="art xy"><i class="sun"></i><svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120V58q30-30 60-10t50-34q30 30 60 26t50-28q40 36 80 30t50-14q30 10 50 40v52z" fill="#9aa39a" opacity=".8"/><path d="M0 120V86q40-26 80-8t70-24q40 24 80 18t60-26q40 24 110 34v40z" fill="#5d6862"/><path d="M0 120v-18q60-16 120-2t100-10q60 10 100 2t80 6v22z" fill="#3b443f"/></svg><div class="t"><span class="v">西游记</span><div class="r"><b>81 Trials</b><span>九九八十一难</span></div></div></div>
       <div class="info">
         <h2>81 Trials · <span class="mm" style="font-family:'Ma Shan Zheng',serif">西游记</span></h2>
-        <p>A puzzle journey to the West in traditional ink-and-scroll style. The Tang monk and his disciples face the calamities of the road, and each one is a logic puzzle: lift the talisman of Five Elements Mountain, find the fake ginseng fruit, unmask the White Bone Demon, cross the Tongtian River.</p>
-        <div class="facts"><span>1 player</span><span>Logic puzzles</span><span>Русский · English · မြန်မာ</span><span>6 of 81 trials</span></div>
-        <span class="play">Set out →</span>
+        <p>A puzzle journey to the West in ink-and-scroll style: every calamity on the road is a logic puzzle. Alone, or together on two phones.</p>
+        <div class="facts"><span class="new">12 of 81 trials</span><span>1–2 players</span><span>RU · EN · MY</span></div>
       </div>
     </a>
 
@@ -178,9 +188,8 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
       <div class="art eq"><div class="t"><b>◐</b><span>Equilibrium</span><div class="seats"><i style="--c:#ff6b6b">●</i><i style="--c:#ffd166">▲</i><i style="--c:#4dd4ac">■</i><i style="--c:#5eb5ff">◆</i><i style="--c:#c792ea">⬢</i><i style="--c:#ff9f43">★</i></div></div></div>
       <div class="info">
         <h2>Equilibrium</h2>
-        <p>A single-player game of trust and betrayal. Six at one table, five with hidden characters. Each round is a small game from game theory, from the prisoner's dilemma to the stag hunt and an all-pay auction, with deals, pledges and spies before you choose. Elimination votes, then split or steal.</p>
-        <div class="facts"><span>1 player</span><span>Logic · strategy · bluff</span><span>Русский · English</span><span>20–30 min</span></div>
-        <span class="play">Take a seat →</span>
+        <p>A single-player game of trust and betrayal: six at one table, deals, pledges and spies, from the prisoner's dilemma to split or steal.</p>
+        <div class="facts"><span>1 player</span><span>Strategy · bluff</span><span>RU · EN</span><span>20–30 min</span></div>
       </div>
     </a>
 
@@ -188,9 +197,8 @@ footer{color:var(--ink-dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wra
       <div class="art tm"><div class="two"><div>чау́н ко<small>кошку</small></div><div>ကော့ရှကူ<small class="mm">ကြောင်ကို</small></div></div></div>
       <div class="info">
         <h2>Tolmach · <span class="mm">စကားပြန်</span></h2>
-        <p>A listening puzzle for a Russian and a Burmese speaker. Each reads the other's language written in their own alphabet, and the listener makes the move on a 3×3 board.</p>
-        <div class="facts"><span>2 players</span><span>Online or one screen</span><span>Russian · Burmese</span><span>10–15 min</span></div>
-        <span class="play">Play Tolmach →</span>
+        <p>A listening puzzle for a Russian and a Burmese speaker: each reads the other's language in their own alphabet.</p>
+        <div class="facts"><span>2 players</span><span>Online or one screen</span><span>RU · MY</span><span>10–15 min</span></div>
       </div>
     </a>
   </main>

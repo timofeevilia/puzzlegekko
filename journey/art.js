@@ -81,7 +81,60 @@ export const BUST = {
     <path d="M60 74q6 3 12 0M88 74q6 3 12 0" stroke="${INK}" stroke-width="2.6" fill="none"/>
     <path class="mouth" d="M72 98q8 5 16 0" fill="none" ${sw}/>
     <path d="M56 104q24 20 48 0q-4 20-24 22-20-2-24-22z" fill="#e8e2d6" ${sw}/>`,
+  huangfeng: `
+    ${robe("#b8862e", "#5a3a12", `<path d="M30 150q50 14 100 0" stroke="#e6c25a" stroke-width="4" fill="none"/><path d="M118 176q26-20 14-44q-10-12-20-2q-6 8 4 12" stroke="#f3e2b0" stroke-width="4" fill="none"/>`)}
+    <path d="M40 24l12 44 22-20z" fill="#c9962e" ${sw}/><path d="M120 24l-12 44-22-20z" fill="#c9962e" ${sw}/><path d="M46 34l7 22 10-9z" fill="#f2c9a0"/><path d="M114 34l-7 22-10-9z" fill="#f2c9a0"/>
+    <path d="M42 80c0-30 18-48 38-48s38 18 38 48-16 42-38 42-38-12-38-42z" fill="#d9a441" ${sw}/>
+    <path d="M56 86c6 20 14 28 24 28s18-8 24-28c-8 6-14 8-24 8s-16-2-24-8z" fill="#f4e6c4"/>
+    <path d="M54 70l18 6M106 70l-18 6" stroke="${INK}" stroke-width="3.5"/>
+    <path d="M58 82q8-6 16 0q-8 4-16 0zM86 82q8-6 16 0q-8 4-16 0z" fill="#f6e04a" ${sw} stroke-width="2"/><circle cx="66" cy="81" r="2" fill="${INK}"/><circle cx="94" cy="81" r="2" fill="${INK}"/>
+    <ellipse cx="80" cy="96" rx="6" ry="4" fill="${INK}"/>
+    <path class="mouth" d="M70 106q10 7 20 0" fill="#7a1f1a" ${sw}/>
+    <path d="M60 98l-24-4M60 103l-24 3M100 98l24-4M100 103l24 3" stroke="${INK}" stroke-width="1.6"/>`,
+  jinjiao: `
+    ${robe("#7a1f1a", "#e6c25a", `<path d="M40 150h80M60 140v36M100 140v36" stroke="#e6c25a" stroke-width="3"/>`)}
+    <path d="M44 78c0-28 16-46 36-46s36 18 36 46-14 44-36 44-36-16-36-44z" fill="#4f7fa8" ${sw}/>
+    <path d="M73 38l7-32 7 32z" fill="#e6c25a" ${sw}/>
+    <path d="M46 50c10-8 58-8 68 0" stroke="#e6c25a" stroke-width="8" fill="none"/><circle cx="80" cy="45" r="4" fill="#c23a2b"/>
+    <path d="M50 64l24 8M110 64l-24 8" stroke="#c23a2b" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="64" cy="78" rx="7" ry="5" fill="#fff" ${sw}/><ellipse cx="96" cy="78" rx="7" ry="5" fill="#fff" ${sw}/><circle cx="64" cy="78" r="3" fill="${INK}"/><circle cx="96" cy="78" r="3" fill="${INK}"/>
+    <path d="M76 84l4 10 4-10" fill="none" stroke="${INK}" stroke-width="2.5"/>
+    <path d="M50 98c6 34 18 46 30 46s24-12 30-46c-8 10-18 14-30 14s-22-4-30-14z" fill="#c23a2b" ${sw}/>
+    <path class="mouth" d="M68 104q12 6 24 0" fill="#3a0f0c" ${sw}/>`,
+  huli: `
+    ${robe("#d9b44a", "#1b1a17", `<circle cx="80" cy="162" r="11" fill="#fff" ${sw} stroke-width="2"/><path d="M80 151a5.5 5.5 0 0 1 0 11a5.5 5.5 0 0 0 0 11a11 11 0 0 1 0-22z" fill="${INK}"/>`)}
+    <path d="M44 78c0-28 16-46 36-46s36 18 36 46-14 44-36 44-36-16-36-44z" fill="#e8b46a" ${sw}/>
+    <path d="M47 70l12 3M45 82h13M113 70l-12 3M115 82h-13M74 40l2 10M86 40l-2 10" stroke="#5a3a12" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M56 76q8-7 16 0q-8 5-16 0zM88 76q8-7 16 0q-8 5-16 0z" fill="#f2c94a" ${sw} stroke-width="2"/><path d="M64 72v8M96 72v8" stroke="${INK}" stroke-width="2.4"/>
+    <path d="M74 88h12l-6 7z" fill="#5a3a12"/>
+    <path d="M68 104q12 46 12 56q0-10 12-56c-4 4-8 6-12 6s-8-2-12-6z" fill="#efe8da" ${sw}/>
+    <path class="mouth" d="M72 102q8 4 16 0" fill="none" ${sw}/>
+    <path d="M58 40h44l-7-20H65z" fill="${INK}"/><path d="M52 32h56" stroke="#c9a24a" stroke-width="3.5"/>`,
+  mouse: `
+    ${robe("#9c7fb0", "#e6c25a", `<path d="M44 150q36 18 72 0" stroke="#e8dff0" stroke-width="2" fill="none"/>`)}
+    <circle cx="46" cy="40" r="19" fill="#f4eef0" ${sw}/><circle cx="46" cy="40" r="10" fill="#f2b6c0"/><circle cx="114" cy="40" r="19" fill="#f4eef0" ${sw}/><circle cx="114" cy="40" r="10" fill="#f2b6c0"/>
+    <path d="M38 84c-4-32 16-52 42-52s46 20 42 52c-8-18-24-26-42-26s-34 8-42 26z" fill="#e8e4ea" ${sw}/>
+    <path d="M48 80c0-22 14-36 32-36s32 14 32 36-14 40-32 40-32-18-32-40z" fill="#fbf6f4" ${sw}/>
+    <ellipse cx="67" cy="80" rx="4.5" ry="5.5" fill="${INK}"/><ellipse cx="93" cy="80" rx="4.5" ry="5.5" fill="${INK}"/><circle cx="68.5" cy="78" r="1.4" fill="#fff"/><circle cx="94.5" cy="78" r="1.4" fill="#fff"/>
+    <ellipse cx="80" cy="94" rx="5.5" ry="4" fill="#e6c25a" ${sw} stroke-width="2"/>
+    <path d="M64 96l-24-4M64 100l-24 3M96 96l24-4M96 100l24 3" stroke="#8a8a8a" stroke-width="1.4"/>
+    <path class="mouth" d="M73 104q7 4 14 0" fill="#d97a8a" stroke="${INK}" stroke-width="2"/>
+    <ellipse cx="60" cy="94" rx="6" ry="3" fill="#f2a0b0" opacity=".55"/><ellipse cx="100" cy="94" rx="6" ry="3" fill="#f2a0b0" opacity=".55"/>
+    <path d="M98 34l20-12" stroke="#e6c25a" stroke-width="3"/><circle cx="120" cy="21" r="4.5" fill="#c23a2b"/>`,
+  abbot: `
+    ${robe("#8d8a80", "#c9a24a", `<path d="M30 180L118 128l12 10L52 180z" fill="#b8322a" stroke="${INK}" stroke-width="2"/>`)}
+    <path d="M46 76c0-26 16-42 34-42s34 16 34 42-14 42-34 42-34-16-34-42z" fill="#efd3b4" ${sw}/>
+    ${[[70, 46], [80, 44], [90, 46], [75, 54], [85, 54]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#a0785a"/>`).join("")}
+    <path d="M58 72q7 4 14 0M88 72q7 4 14 0" stroke="${INK}" stroke-width="2.6" fill="none"/>
+    <path d="M58 64q8-3 14 0M88 64q8-3 14 0" stroke="#bbb" stroke-width="3" fill="none"/>
+    <path d="M78 76v10q2 2 4 0" stroke="${INK}" stroke-width="2" fill="none"/>
+    <path class="mouth" d="M72 98q8 3 16 0" fill="none" ${sw}/>
+    <circle cx="44" cy="80" r="6" fill="#efd3b4" ${sw}/><circle cx="116" cy="80" r="6" fill="#efd3b4" ${sw}/>`,
 };
+// the six-eared macaque: Wukong's double, darker, with three ears on each side
+BUST.liuer = `<g fill="#6b4f37" ${sw} stroke-width="2.5"><circle cx="30" cy="58" r="9"/><circle cx="130" cy="58" r="9"/><circle cx="32" cy="96" r="9"/><circle cx="128" cy="96" r="9"/></g>` +
+  BUST.wukong.replaceAll("#c98a3a", "#6b4f37").replaceAll("#e2a93b", "#8a6d3b").replace('<circle cx="69" cy="70" r="3" fill="#1b1a17"/>', '<circle cx="69" cy="70" r="3" fill="#b8322a"/>');
+
 export const NAMES = {
   wukong: { ru: "Сунь Укун", en: "Sun Wukong", my: "ဆွန်ဝူခုန်း", zh: "孙悟空" },
   bajie: { ru: "Чжу Бацзе", en: "Zhu Bajie", my: "ကျူပါကျဲ", zh: "猪八戒" },
@@ -91,6 +144,12 @@ export const NAMES = {
   fan: { ru: "Принцесса Железный Веер", en: "Princess Iron Fan", my: "သံယပ်တောင် မင်းသမီး", zh: "铁扇公主" },
   spider: { ru: "Паучиха", en: "Spider Spirit", my: "ပင့်ကူ နတ်ဆိုးမ", zh: "蜘蛛精" },
   monk: { ru: "Даос Чжэньюань", en: "Master Zhenyuan", my: "ကျန်ယွမ်ဇီ ဆရာ", zh: "镇元子" },
+  huangfeng: { ru: "Жёлтый Ветер", en: "Yellow Wind Demon", my: "လေဝါ နတ်ဆိုး", zh: "黄风怪" },
+  jinjiao: { ru: "Золотой Рог", en: "Golden Horn", my: "ရွှေဦးချို", zh: "金角大王" },
+  huli: { ru: "Даос Силы Тигра", en: "Tiger Power Immortal", my: "ကျားအား တာအိုဆရာ", zh: "虎力大仙" },
+  liuer: { ru: "Шестиухая обезьяна", en: "Six-Eared Macaque", my: "နားခြောက်ဖက် မျောက်", zh: "六耳猕猴" },
+  mouse: { ru: "Госпожа из-под Земли", en: "Lady Earth Flow", my: "မြေအောက် အရှင်မ", zh: "地涌夫人" },
+  abbot: { ru: "Монах храма Цзиньгуан", en: "Monk of Golden Light Temple", my: "ရွှေအလင်းကျောင်း ဘုန်းကြီး", zh: "金光寺僧" },
 };
 export const bust = (id, cls = "") => `<svg class="bust ${cls}" viewBox="0 0 160 180" aria-hidden="true">${BUST[id]}</svg>`;
 
@@ -120,6 +179,11 @@ const SCENES = {
   bones: { sky: ["#e8e6df", "#cfcac0"], sun: "#9b9a95", ranges: ["#b9b8b0", "#8d8c84", "#55544e"], deco: () => `<g fill="#efe9dc" opacity=".7"><circle cx="1320" cy="820" r="16"/><circle cx="260" cy="840" r="12"/></g>` + pine(1380, 780, 1.1, "#3a3a36") },
   river: { sky: ["#e6ebe8", "#c9d6d6"], sun: "#e9e3cf", ranges: ["#a9b8b8", "#7d9294", "#4e6264"], water: true, deco: () => "" },
   fire: { sky: ["#f2d2a8", "#e09a62"], sun: "#a2241a", ranges: ["#d9824e", "#b8502e", "#7a2a1a"], deco: () => "" },
+  wind: { sky: ["#f1dca0", "#d9b062"], sun: "#c9852e", ranges: ["#d6b87a", "#b08a4a", "#6e5428"], deco: () => `<g stroke="#fff6dc" stroke-width="7" fill="none" opacity=".45" stroke-linecap="round"><path d="M80 300q160-70 320 0t320 0"/><path d="M700 220q140-60 280 0q60 30 100-10q20-30-10-40"/><path d="M200 470q200-60 400 0t300-20"/></g>` + pine(1320, 780, 1.2, "#4a3a20") },
+  palace: { sky: ["#f2e2c4", "#e6c98e"], sun: "#c23a2b", ranges: ["#c9b48a", "#a08860", "#6a5638"], deco: () => `<g transform="translate(1000 600)"><rect x="-260" y="120" width="520" height="40" fill="#5a2a18"/><rect x="-220" y="40" width="440" height="90" fill="#a8321f"/><path d="M-270 50q270-90 540 0l-40 12h-460z" fill="#d9a43a" stroke="#5a3a12" stroke-width="4"/><rect x="-140" y="-30" width="280" height="70" fill="#a8321f"/><path d="M-180 -20q180-70 360 0l-30 10h-300z" fill="#d9a43a" stroke="#5a3a12" stroke-width="4"/>${[-180, -100, -20, 60, 140].map(x => `<rect x="${x}" y="60" width="40" height="70" fill="#5a1a10"/>`).join("")}</g>` },
+  pagoda: { sky: ["#eef0e4", "#d6dcc6"], sun: "#d9a43a", ranges: ["#aab8a2", "#7d9474", "#4b6045"], deco: () => `<g transform="translate(1180 820)" fill="#3a2e24">${Array.from({ length: 9 }, (_, k) => `<path d="M${-90 + k * 8} ${-k * 52}h${180 - k * 16}l${18 - k}-14h${-216 + k * 18}z"/><rect x="${-60 + k * 6}" y="${-k * 52 - 52}" width="${120 - k * 12}" height="40" fill="#7a2a20"/>`).join("")}<path d="M0 -470v-60" stroke="#3a2e24" stroke-width="8"/></g>` + pine(240, 800, 1.4) },
+  flat: { sky: ["#e9e4cf", "#cfd6c0"], sun: "#b03a6a", ranges: ["#a7b39a", "#748a6a", "#40543a"], deco: () => `<path d="M820 640l120-200h360l120 200z" fill="#40543a" opacity=".9"/><g transform="translate(1110 380)"><circle cy="30" r="34" fill="#b03a6a" opacity=".85"/><circle cy="-22" r="22" fill="#b03a6a" opacity=".85"/></g>` + pine(300, 790, 1.3) },
+  pit: { sky: ["#cfc6c0", "#8f8682"], sun: "#6b5a52", ranges: ["#9a908a", "#6a605a", "#3a322e"], deco: () => `<path d="M560 900q0-320 240-320t240 320z" fill="#14110f" opacity=".9"/>${[620, 700, 780, 860, 940].map((x, k) => `<path d="M${x} ${600 + (k % 2) * 10}l14 ${50 + (k % 3) * 20}l14 -${50 + (k % 3) * 20}z" fill="#8a807a"/>`).join("")}` },
   cave: { sky: ["#d9d2c6", "#b5a9b8"], sun: "#6b4a7a", ranges: ["#9c93a0", "#6f6578", "#3f3548"], deco: () => `<path d="M1040 900q0-260 200-260t200 260z" fill="#1b1a17" opacity=".85"/><g stroke="#e8e0ef" stroke-width="1.5" fill="none" opacity=".7"><path d="M1060 700l180 -60 180 60M1100 760l140-90 140 90M1240 640v260"/></g>` },
 };
 export function scene(name, { paper = true } = {}) {

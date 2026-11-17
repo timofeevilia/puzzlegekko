@@ -1,256 +1,7 @@
-// 81 Trials: the playable trials. Each one has a story, rules, hints and a puzzle mounted into a panel.
-// api: { tr, sfx, done({ good }), mistake(), status(html), moves(n) }
-const rnd = n => Math.random() * n | 0;
-const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// 81 Trials: the trials in the order of the novel. Each has a story, rules (and rules for two), hints and a puzzle engine.
+import { sealPuzzle, weighPuzzle, bonesPuzzle, riverPuzzle, firePuzzle, webPuzzle } from "./puzzles.js";
+import { windPuzzle, casketPuzzle, pagodaPuzzle, mirrorPuzzle, gourdPuzzle, pitPuzzle } from "./puzzles2.js";
 const L = (ru, en, my) => ({ ru, en, my });
-const my = n => String(n).replace(/\d/g, d => "၀၁၂၃၄၅၆၇၈၉"[d]); // Burmese digits
-
-// ═════ 1. Five Elements Mountain: rotate the talisman pieces into one connected network
-const N = 1, E = 2, S = 4, W = 8, DIRS = [[N, 0, -1, S], [E, 1, 0, W], [S, 0, 1, N], [W, -1, 0, E]];
-const rot = m => ((m << 1) & 15) | (m >> 3);
-function sealPuzzle(el, api) {
-  const n = 5, c0 = 2 * n + 2, mask = Array(n * n).fill(0), seen = new Set([c0]), stack = [c0];
-  while (stack.length) { // random depth-first spanning tree from the centre
-    const c = stack[stack.length - 1], x = c % n, y = c / n | 0;
-    const nb = shuffle(DIRS).filter(([, dx, dy]) => { const X = x + dx, Y = y + dy; return X >= 0 && Y >= 0 && X < n && Y < n && !seen.has(Y * n + X); });
-    if (!nb.length) { stack.pop(); continue; }
-    const [b, dx, dy, ob] = nb[0], d = (y + dy) * n + x + dx; mask[c] |= b; mask[d] |= ob; seen.add(d); stack.push(d);
-  }
-  const cur = mask.map(m => { let r = m; for (let k = rnd(4); k--;) r = rot(r); return r; });
-  const turns = cur.map(() => 0);
-  let par = 0; cur.forEach((m, i) => { let r = m, k = 0; while (r !== mask[i] && k < 4) { r = rot(r); k++; } par += k; });
-  if (par < 8) return sealPuzzle(el, api);
-  let moves = 0; el._t = { mask, cur, n };
-  const lit = () => { // tiles connected to the centre seal
-    const on = new Set([c0]), q = [c0];
-    while (q.length) { const c = q.pop(), x = c % n, y = c / n | 0; for (const [b, dx, dy, ob] of DIRS) { const X = x + dx, Y = y + dy, d = Y * n + X; if (cur[c] & b && X >= 0 && Y >= 0 && X < n && Y < n && cur[d] & ob && !on.has(d)) { on.add(d); q.push(d); } } }
-    return on;
-  };
-  const solved = () => { for (let c = 0; c < n * n; c++) { const x = c % n, y = c / n | 0; for (const [b, dx, dy, ob] of DIRS) { const X = x + dx, Y = y + dy, inside = X >= 0 && Y >= 0 && X < n && Y < n; if (!!(cur[c] & b) !== (inside && !!(cur[Y * n + X] & ob))) return false; } } return lit().size === n * n; };
-  const tile = (m, c) => {
-    const ends = [N, E, S, W].filter(b => m & b), deg = ends.length;
-    const ln = { [N]: "M50 50V0", [E]: "M50 50H100", [S]: "M50 50V100", [W]: "M50 50H0" };
-    return `<svg viewBox="0 0 100 100"><rect x="2" y="2" width="96" height="96" rx="6" class="tbg"/>${ends.map(b => `<path d="${ln[b]}" class="ln"/>`).join("")}
-      ${c === c0 ? "" : deg === 1 ? `<circle cx="50" cy="50" r="13" class="end"/>` : `<circle cx="50" cy="50" r="7" class="dot"/>`}</svg>`;
-  };
-  el.innerHTML = `<div class="net" style="--n:${n}">${cur.map((m, c) => `<button class="nt" data-c="${c}" aria-label="tile"><div class="ntr" style="transform:rotate(0deg)">${tile(mask[c] === m ? mask[c] : m, c)}</div></button>`).join("")}</div>`;
-  // draw each tile from its solved shape, then turn it to the scrambled position, so rotation is a pure CSS turn
-  el.querySelectorAll(".nt").forEach((b, c) => { let k = 0, r = mask[c]; while (r !== cur[c] && k < 4) { r = rot(r); k++; } turns[c] = k; b.querySelector(".ntr").innerHTML = tile(mask[c], c); b.querySelector(".ntr").style.transform = `rotate(${k * 90}deg)`; if (c === c0) b.insertAdjacentHTML("beforeend", `<span class="srcov">封</span>`); });
-  const paint = () => { const on = lit(); el.querySelectorAll(".nt").forEach((b, c) => b.classList.toggle("lit", on.has(c))); api.status(`${api.tr("Поворотов", "Turns", "လှည့်ခဲ့တာ")}: <b>${moves}</b>`); };
-  paint();
-  el.querySelector(".net").onclick = e => {
-    const b = e.target.closest(".nt"); if (!b || el.dataset.done) return;
-    const c = +b.dataset.c; cur[c] = rot(cur[c]); turns[c]++; moves++;
-    b.querySelector(".ntr").style.transform = `rotate(${turns[c] * 90}deg)`; api.sfx("wood");
-    paint();
-    if (solved()) { el.dataset.done = 1; el.querySelector(".net").classList.add("solved"); setTimeout(() => api.done({ good: moves <= par + 6, moves, par }), 900); }
-  };
-}
-
-// ═════ 2. Ginseng fruit: find the fake with a balance; a sly garden spirit always picks the worst case for you
-const FRUIT = (k, cls = "") => `<svg class="fruit ${cls}" viewBox="0 0 60 70"><path d="M30 10c-4-8 6-12 10-6" stroke="#4d7030" stroke-width="3" fill="none"/><path d="M33 8c8-6 18-2 18 4-8 4-14 2-18-4z" fill="#7aa04a"/><ellipse cx="30" cy="40" rx="22" ry="26" fill="#f2e3c2" stroke="#1b1a17" stroke-width="2.5"/><circle cx="23" cy="38" r="2.4" fill="#1b1a17"/><circle cx="37" cy="38" r="2.4" fill="#1b1a17"/><path d="M25 48q5 4 10 0" stroke="#1b1a17" stroke-width="2" fill="none"/><ellipse cx="20" cy="45" rx="4" ry="2.5" fill="#e8a0a0" opacity=".6"/><ellipse cx="40" cy="45" rx="4" ry="2.5" fill="#e8a0a0" opacity=".6"/><text x="30" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#7a5a2a" font-family="serif">${k}</text></svg>`;
-function weighPuzzle(el, api) {
-  const STAGES = [{ n: 9, w: 2, any: false }, { n: 12, w: 3, any: true }];
-  let si = 0, mistakes = 0;
-  const start = () => {
-    const st = STAGES[si];
-    let cand = st.any ? Array.from({ length: st.n }, (_, i) => [[i, -1], [i, 1]]).flat() : Array.from({ length: st.n }, (_, i) => [i, -1]);
-    const pos = Array(st.n).fill(0); // 0 table, 1 left pan, 2 right pan
-    const hist = []; let left = st.w, accuse = false, tilt = 0; el._t = { get cand() { return cand; }, stage: si, n: st.n, any: st.any };
-    const draw = (msg = "") => {
-      const pan = p => pos.map((v, i) => v === p ? i : -1).filter(i => i >= 0);
-      el.innerHTML = `<div class="weigh">
-        <p class="stagecap">${api.tr(`Сад ${si + 1} из 2: ${st.n} плодов, ${st.any ? "подделка легче или тяжелее" : "подделка легче"}, взвешиваний: ${st.w}`, `Garden ${si + 1} of 2: ${st.n} fruits, the fake is ${st.any ? "lighter or heavier" : "lighter"}, weighings: ${st.w}`, `ဥယျာဉ် ${my(si + 1)} / ၂: အသီး ${my(st.n)} လုံး၊ အတုက ${st.any ? "ပိုပေါ့ချင် ပေါ့မယ်၊ ပိုလေးချင် လေးမယ်" : "ပိုပေါ့တယ်"}၊ ချိန်ခွင့်: ${my(st.w)} ကြိမ်`)}</p>
-        <svg class="balance" viewBox="0 0 400 210"><path d="M200 200V60" stroke="#5a3a1a" stroke-width="10"/><path d="M150 205h100" stroke="#5a3a1a" stroke-width="12" stroke-linecap="round"/>
-          <g class="beam" style="transform:rotate(${tilt}deg)"><path d="M50 60h300" stroke="#8a5a2b" stroke-width="8" stroke-linecap="round"/><circle cx="200" cy="60" r="10" fill="#c9a24a" stroke="#1b1a17" stroke-width="3"/>
-            <g class="pan" style="transform:rotate(${-tilt}deg);transform-origin:60px 60px"><path d="M60 60l-40 70M60 60l40 70" stroke="#5a3a1a" stroke-width="2"/><path d="M10 130h100q-10 22-50 22t-50-22z" fill="#c9a24a" stroke="#1b1a17" stroke-width="3"/></g>
-            <g class="pan" style="transform:rotate(${-tilt}deg);transform-origin:340px 60px"><path d="M340 60l-40 70M340 60l40 70" stroke="#5a3a1a" stroke-width="2"/><path d="M290 130h100q-10 22-50 22t-50-22z" fill="#c9a24a" stroke="#1b1a17" stroke-width="3"/></g></g></svg>
-        <div class="pans"><div class="panL">${pan(1).map(i => `<button class="fr" data-i="${i}">${FRUIT(i + 1, "sm")}</button>`).join("") || `<span class="dim">${api.tr("левая чаша", "left pan", "ဘယ်ဘက် ခွက်")}</span>`}</div><div class="panR">${pan(2).map(i => `<button class="fr" data-i="${i}">${FRUIT(i + 1, "sm")}</button>`).join("") || `<span class="dim">${api.tr("правая чаша", "right pan", "ညာဘက် ခွက်")}</span>`}</div></div>
-        <div class="table">${pan(0).map(i => `<button class="fr" data-i="${i}">${FRUIT(i + 1)}</button>`).join("")}</div>
-        <div class="row"><button class="btn primary" id="wg" ${left && !accuse && (pan(1).length || pan(2).length) ? "" : "disabled"}>⚖ ${api.tr("Взвесить", "Weigh", "ချိန်မယ်")} (${left})</button>
-          <button class="btn ${accuse ? "on" : ""}" id="acc">☝ ${accuse ? api.tr("Отмена", "Cancel", "မလုပ်တော့ဘူး") : api.tr("Назвать подделку", "Name the fake", "အတုကို ညွှန်ပြမယ်")}</button></div>
-        ${accuse ? `<p class="note">${api.tr("Нажмите на плод, который считаете подделкой.", "Tap the fruit you think is fake.", "အတုလို့ ထင်တဲ့ အသီးကို နှိပ်ပါ။")}</p>` : `<p class="dim small">${api.tr("Нажимайте на плод: стол → левая чаша → правая чаша → стол.", "Tap a fruit: table → left pan → right pan → table.", "အသီးကို နှိပ်ပါ: စားပွဲ → ဘယ်ခွက် → ညာခွက် → စားပွဲ။")}</p>`}
-        ${msg ? `<p class="note">${msg}</p>` : ""}
-        <ol class="hist">${hist.map(h => `<li>${h}</li>`).join("")}</ol></div>`;
-      el.querySelectorAll(".fr").forEach(b => b.onclick = () => {
-        const i = +b.dataset.i;
-        if (accuse) return st.any ? pickDir(i) : judge(i, -1);
-        pos[i] = (pos[i] + 1) % 3; api.sfx("wood"); draw();
-      });
-      el.querySelector("#wg").onclick = weigh;
-      el.querySelector("#acc").onclick = () => { accuse = !accuse; draw(); };
-    };
-    const pickDir = i => {
-      el.querySelector(".table").insertAdjacentHTML("beforebegin", `<div class="row dir"><b>№${i + 1}:</b><button class="btn" data-d="-1">${api.tr("легче", "lighter", "ပိုပေါ့")}</button><button class="btn" data-d="1">${api.tr("тяжелее", "heavier", "ပိုလေး")}</button></div>`);
-      el.querySelectorAll("[data-d]").forEach(b => b.onclick = () => judge(i, +b.dataset.d));
-    };
-    const weigh = () => {
-      const Lp = pos.map((v, i) => v === 1 ? i : -1).filter(i => i >= 0), Rp = pos.map((v, i) => v === 2 ? i : -1).filter(i => i >= 0);
-      left--; let out;
-      if (Lp.length !== Rp.length) out = Math.sign(Lp.length - Rp.length);
-      else {
-        const res = c => { const [i, d] = c; return Lp.includes(i) ? d : Rp.includes(i) ? -d : 0; }; // +1: left heavier
-        const groups = {}; cand.forEach(c => (groups[res(c)] = groups[res(c)] || []).push(c));
-        const keys = Object.keys(groups), max = Math.max(...keys.map(k => groups[k].length));
-        out = +shuffle(keys.filter(k => groups[k].length === max))[0]; cand = groups[out];
-      }
-      tilt = out * -10; api.sfx("wood");
-      const word = out > 0 ? api.tr("левая тяжелее", "left is heavier", "ဘယ်ဘက် ပိုလေးတယ်") : out < 0 ? api.tr("правая тяжелее", "right is heavier", "ညာဘက် ပိုလေးတယ်") : api.tr("равновесие", "balance", "ညီမျှတယ်");
-      hist.push(`[${Lp.map(i => i + 1).join(", ")}] ⚖ [${Rp.map(i => i + 1).join(", ")}] → <b>${word}</b>`);
-      draw();
-    };
-    const judge = (i, d) => {
-      const ok = cand.length === 1 && cand[0][0] === i && cand[0][1] === d;
-      if (ok) { api.sfx("bell"); si++; if (si < STAGES.length) { start(); el.insertAdjacentHTML("afterbegin", `<p class="note good">${api.tr("Верно! Подделка найдена. Теперь второй сад.", "Right! The fake is found. Now the second garden.", "မှန်တယ်! အတုကို တွေ့ပြီ။ အခု ဒုတိယ ဥယျာဉ်။")}</p>`); } else { el.dataset.done = 1; api.done({ good: mistakes === 0 }); } return; }
-      const real = cand.find(c => !(c[0] === i && c[1] === d)) || cand[0];
-      mistakes++; api.mistake(); api.sfx("fail");
-      draw(api.tr(`Дух сада смеётся: подделкой был №${real[0] + 1}${st.any ? (real[1] > 0 ? " (тяжелее)" : " (легче)") : ""}. Плоды перемешаны, попробуйте снова.`, `The garden spirit laughs: the fake was №${real[0] + 1}${st.any ? (real[1] > 0 ? " (heavier)" : " (lighter)") : ""}. The fruits are mixed again; try once more.`, `ဥယျာဉ်စောင့်နတ် ရယ်နေတယ်: အတုက အမှတ် ${my(real[0] + 1)}${st.any ? (real[1] > 0 ? " (ပိုလေး)" : " (ပိုပေါ့)") : ""}။ အသီးတွေကို ပြန်ရောလိုက်ပြီ၊ ထပ်ကြိုးစားပါ။`));
-      setTimeout(start, 2600);
-    };
-    draw();
-  };
-  start();
-}
-
-// ═════ 3. White Bone Demon: demons always lie, people always tell the truth
-const KK_NAMES = [["Ли-дровосек", "Li the woodcutter", "သစ်ခုတ်သမား လီ"], ["Ван-рыбак", "Wang the fisherman", "တံငါ ဝမ်"], ["Чжан-торговка", "Zhang the trader", "ကုန်သည်မ ကျန်း"], ["Лю-пастух", "Liu the herdsman", "နွားကျောင်းသား လျူ"], ["Чэнь-гончар", "Chen the potter", "အိုးထိန်းသည် ချန်"], ["Ян-ткачиха", "Yang the weaver", "ယက်ကန်းသည်မ ယန်"], ["Хуан-лекарь", "Huang the healer", "ဆေးဆရာ ဟွမ်"], ["Чжао-сборщица чая", "Zhao the tea picker", "လက်ဖက်ခူးသူ ကျောက်"]];
-const evalS = (s, D) => s.t === "demon" ? D[s.a] : s.t === "human" ? !D[s.a] : s.t === "same" ? D[s.a] === D[s.b] : s.t === "diff" ? D[s.a] !== D[s.b] : (D[s.a] || D[s.b]);
-function genKK(n, d) {
-  const K = [];
-  for (let a = 0; a < n; a++) { K.push({ t: "demon", a }, { t: "human", a }); for (let b = a + 1; b < n; b++) K.push({ t: "same", a, b }, { t: "diff", a, b }, { t: "oneOf", a, b }); }
-  for (let tries = 0; tries < 50000; tries++) {
-    const st = Array.from({ length: n }, (_, i) => { let s; do s = K[rnd(K.length)]; while ((s.t === "demon" || s.t === "human") && s.a === i); return s; });
-    if (new Set(st.map(s => s.t)).size < Math.min(3, n)) continue;
-    const sols = [];
-    for (let m = 0; m < 1 << n; m++) { const D = Array.from({ length: n }, (_, i) => !!(m >> i & 1)); if (D.filter(Boolean).length !== d) continue; if (st.every((s, i) => evalS(s, D) === !D[i])) sols.push(D); }
-    if (sols.length === 1) return { st, D: sols[0] };
-  }
-}
-const PERSON = (k, demon) => { const robes = ["#7a8a5a", "#5a6f8a", "#8a5a4a", "#6a5a7a", "#8a7a4a"], hair = ["#1b1a17", "#3a2a1a", "#555", "#1b1a17", "#2a1a10"];
-  return demon ? `<svg viewBox="0 0 80 90"><path d="M10 90c2-18 12-26 30-28 18 2 28 10 30 28z" fill="#efe8da" stroke="#1b1a17" stroke-width="2"/><circle cx="40" cy="38" r="22" fill="#f4efe4" stroke="#1b1a17" stroke-width="2.5"/><ellipse cx="32" cy="36" rx="6" ry="7" fill="#1b1a17"/><ellipse cx="48" cy="36" rx="6" ry="7" fill="#1b1a17"/><path d="M38 48l2-5 2 5z" fill="#1b1a17"/><path d="M30 54h20M34 54v4M40 54v4M46 54v4" stroke="#1b1a17" stroke-width="2"/></svg>`
-    : `<svg viewBox="0 0 80 90"><path d="M10 90c2-18 12-26 30-28 18 2 28 10 30 28z" fill="${robes[k % 5]}" stroke="#1b1a17" stroke-width="2"/><circle cx="40" cy="40" r="20" fill="#f0d6bc" stroke="#1b1a17" stroke-width="2.5"/><path d="M20 36c0-14 10-20 20-20s20 6 20 20c-6-6-12-8-20-8s-14 2-20 8z" fill="${hair[k % 5]}"/>${k % 2 ? `<path d="M14 26q26-22 52 0z" fill="#c9a24a" stroke="#1b1a17" stroke-width="2"/>` : `<circle cx="40" cy="16" r="6" fill="${hair[k % 5]}"/>`}<path d="M33 42h2M45 42h2" stroke="#1b1a17" stroke-width="3" stroke-linecap="round"/><path d="M35 50q5 3 10 0" stroke="#1b1a17" stroke-width="2" fill="none"/></svg>`; };
-function bonesPuzzle(el, api) {
-  const ROUNDS = [{ n: 3, d: 1, cap: L("Первое обличье: девушка с корзинкой еды. На дороге трое, один из них — демон.", "First disguise: a girl with a basket of food. Three on the road, one is the demon.", "ပထမ အသွင်: အစားအစာခြင်း ကိုင်ထားတဲ့ မိန်းကလေး။ လမ်းပေါ်မှာ သုံးယောက်၊ တစ်ယောက်က နတ်ဆိုး။") },
-    { n: 4, d: 1, cap: L("Второе обличье: старушка ищет дочь. Путников четверо, демон один.", "Second disguise: an old woman looking for her daughter. Four travellers, one demon.", "ဒုတိယ အသွင်: သမီးကို ရှာနေတဲ့ အဘွားအို။ ခရီးသွား လေးယောက်၊ နတ်ဆိုး တစ်ကောင်။") },
-    { n: 5, d: 2, eyes: true, cap: L("Третье обличье: старик ищет жену и дочь. Путников пятеро, и демонов двое: Белая Кость привела подручного.", "Third disguise: an old man looking for his wife and daughter. Five travellers and two demons: the White Bone Demon brought a helper.", "တတိယ အသွင်: ဇနီးနဲ့ သမီးကို ရှာနေတဲ့ အဘိုးအို။ ခရီးသွား ငါးယောက်နဲ့ နတ်ဆိုး နှစ်ကောင်: အရိုးဖြူ နတ်ဆိုးမက အကူတစ်ကောင် ခေါ်လာတယ်။") }];
-  let ri = 0, mistakes = 0;
-  const round = () => {
-    const R = ROUNDS[ri], P = genKK(R.n, R.d), names = shuffle(KK_NAMES).slice(0, R.n);
-    const nm = i => api.tr(names[i][0], names[i][1], names[i][2]);
-    const me = (i, j) => i === j;
-    const say = (s, i) => { const X = a => me(a, i) ? api.tr("я", "I", "ကျွန်ုပ်") : nm(a), Xc = a => me(a, i) ? api.tr("Я", "I", "ကျွန်ုပ်") : nm(a);
-      if (s.t === "demon") return api.tr(`${Xc(s.a)} — оборотень.`, `${X(s.a)} is the demon in disguise.`, `${X(s.a)} က အသွင်ယူထားတဲ့ နတ်ဆိုး။`);
-      if (s.t === "human") return api.tr(`${Xc(s.a)} — обычный человек.`, `${X(s.a)} is an ordinary person.`, `${X(s.a)} က သာမန်လူ။`);
-      if (s.t === "same") return api.tr(`${Xc(s.a)} и ${X(s.b)} — одного рода.`, `${X(s.a)} and ${X(s.b)} are the same kind.`, `${X(s.a)} နဲ့ ${X(s.b)} က အမျိုးတူတွေ။`);
-      if (s.t === "diff") return api.tr(`${Xc(s.a)} и ${X(s.b)} — разного рода.`, `${X(s.a)} and ${X(s.b)} are different kinds.`, `${X(s.a)} နဲ့ ${X(s.b)} က အမျိုးမတူဘူး။`);
-      return api.tr(`Хотя бы один из двоих — ${nm(s.a)} или ${nm(s.b)} — оборотень.`, `At least one of ${nm(s.a)} and ${nm(s.b)} is a demon.`, `${nm(s.a)} နဲ့ ${nm(s.b)} ထဲက အနည်းဆုံး တစ်ယောက်က နတ်ဆိုး။`).replace(nm(i), api.tr("я", "me", "ကျွန်ုပ်"));
-    };
-    const sel = new Set(), seen = {}; let eyes = R.eyes ? 1 : 0, eyeMode = false; el._t = { D: P.D };
-    const draw = (msg = "") => {
-      el.innerHTML = `<div class="bones"><p class="stagecap">${api.tr(`Обличье ${ri + 1} из 3`, `Disguise ${ri + 1} of 3`, `အသွင် ${my(ri + 1)} / ၃`)}</p><p>${api.tr(R.cap.ru, R.cap.en, R.cap.my)}</p>
-        <div class="people">${P.st.map((s, i) => `<button class="person ${sel.has(i) ? "sel" : ""} ${seen[i] !== undefined ? (seen[i] ? "isdemon" : "ishuman") : ""}" data-i="${i}">
-          <div class="pf">${PERSON(i, seen[i] === true)}</div><b>${nm(i)}</b><q>${say(s, i)}</q>${seen[i] !== undefined ? `<em>${seen[i] ? api.tr("оборотень!", "a demon!", "နတ်ဆိုး!") : api.tr("человек", "human", "လူ")}</em>` : ""}</button>`).join("")}</div>
-        <div class="row"><button class="btn primary" id="strike" ${sel.size === R.d ? "" : "disabled"}>🔱 ${api.tr("Ударить посохом", "Strike with the staff", "တောင်ဝှေးနဲ့ ရိုက်မယ်")} (${sel.size}/${R.d})</button>
-        ${eyes ? `<button class="btn ${eyeMode ? "on" : ""}" id="eyes">👁 ${api.tr("Огненные глаза (1 раз)", "Fiery eyes (once)", "မီးမျက်လုံး (တစ်ကြိမ်)")}</button>` : ""}</div>
-        ${eyeMode ? `<p class="note">${api.tr("Нажмите на путника, чтобы увидеть его истинную суть.", "Tap a traveller to see their true nature.", "ခရီးသွားကို နှိပ်ပြီး သူ့ရဲ့ အစစ်အမှန်ကို ကြည့်ပါ။")}</p>` : ""}${msg ? `<p class="note bad">${msg}</p>` : ""}</div>`;
-      el.querySelectorAll(".person").forEach(b => b.onclick = () => {
-        const i = +b.dataset.i;
-        if (eyeMode) { seen[i] = P.D[i]; eyes = 0; eyeMode = false; api.sfx("bell"); return draw(); }
-        sel.has(i) ? sel.delete(i) : sel.size < R.d && sel.add(i); api.sfx("wood"); draw();
-      });
-      el.querySelector("#eyes")?.addEventListener("click", () => { eyeMode = !eyeMode; draw(); });
-      el.querySelector("#strike").onclick = () => {
-        const ok = [...sel].every(i => P.D[i]) && sel.size === R.d;
-        if (ok) { api.sfx("gong"); [...sel].forEach(i => seen[i] = true); draw(); el.querySelector(".bones").classList.add("hit");
-          setTimeout(() => { ri++; if (ri < ROUNDS.length) round(); else { el.dataset.done = 1; api.done({ good: mistakes === 0 }); } }, 1600); return; }
-        mistakes++; api.mistake(); api.sfx("chant"); document.body.classList.add("headache"); setTimeout(() => document.body.classList.remove("headache"), 900);
-        sel.clear(); draw(api.tr("Вы ударили человека! Наставник читает заклинание, обруч сжимается. Подумайте ещё.", "You struck a human! The master recites the spell and the headband tightens. Think again.", "လူကို ရိုက်မိသွားပြီ! ဆရာက မန္တန်ရွတ်လို့ ခေါင်းစွပ်ကွင်း တင်းလာတယ်။ ထပ်စဉ်းစားပါ။"));
-      };
-    };
-    draw();
-  };
-  round();
-}
-
-// ═════ 4. Tongtian River: three monks, three river demons, a raft for two
-const TOK = { m0: "tang", m1: "bajie", m2: "sha" };
-const MON = { tang: `<svg viewBox="0 0 60 70"><path d="M8 70c2-16 10-22 22-24 12 2 20 8 22 24z" fill="#c8322b" stroke="#1b1a17" stroke-width="2"/><circle cx="30" cy="30" r="16" fill="#f3dcc4" stroke="#1b1a17" stroke-width="2"/><path d="M16 20l4-12 6 8 4-10 4 10 6-8 4 12z" fill="#e6c25a" stroke="#1b1a17" stroke-width="1.5"/><path d="M24 32h4M33 32h4" stroke="#1b1a17" stroke-width="2"/></svg>`,
-  bajie: `<svg viewBox="0 0 60 70"><path d="M8 70c2-16 10-22 22-24 12 2 20 8 22 24z" fill="#2b2b33" stroke="#1b1a17" stroke-width="2"/><circle cx="30" cy="30" r="17" fill="#f2b6a6" stroke="#1b1a17" stroke-width="2"/><path d="M14 20c-8 2-8 14-4 18M46 20c8 2 8 14 4 18" fill="#e79d8c" stroke="#1b1a17" stroke-width="2"/><ellipse cx="30" cy="36" rx="9" ry="6" fill="#f6c8ba" stroke="#1b1a17" stroke-width="1.5"/><circle cx="27" cy="36" r="1.6"/><circle cx="33" cy="36" r="1.6"/><circle cx="23" cy="26" r="2"/><circle cx="37" cy="26" r="2"/></svg>`,
-  sha: `<svg viewBox="0 0 60 70"><path d="M8 70c2-16 10-22 22-24 12 2 20 8 22 24z" fill="#6b4a2b" stroke="#1b1a17" stroke-width="2"/><circle cx="30" cy="30" r="16" fill="#6f8aa0" stroke="#1b1a17" stroke-width="2"/><path d="M15 34c2 12 8 16 15 16s13-4 15-16c-4 6-8 8-15 8s-11-2-15-8z" fill="#b8352b"/><circle cx="25" cy="28" r="2"/><circle cx="35" cy="28" r="2"/></svg>`,
-  demon: `<svg viewBox="0 0 60 70"><path d="M8 70c2-16 10-22 22-24 12 2 20 8 22 24z" fill="#3f6f5a" stroke="#1b1a17" stroke-width="2"/><path d="M14 30c0-14 8-20 16-20s16 6 16 20-6 18-16 18-16-4-16-18z" fill="#6fae8a" stroke="#1b1a17" stroke-width="2"/><path d="M14 18l-6-10 12 6M46 18l6-10-12 6" fill="#c9a24a" stroke="#1b1a17" stroke-width="1.5"/><circle cx="24" cy="28" r="4" fill="#f2e04a" stroke="#1b1a17" stroke-width="1.5"/><circle cx="36" cy="28" r="4" fill="#f2e04a" stroke="#1b1a17" stroke-width="1.5"/><path d="M22 40l4 3 4-3 4 3 4-3" stroke="#1b1a17" stroke-width="1.5" fill="none"/></svg>` };
-function riverPuzzle(el, api) {
-  const ids = ["m0", "m1", "m2", "d0", "d1", "d2"];
-  let side = {}, raft = [], at = 0, moves = 0, fails = 0;
-  const reset = () => { ids.forEach(i => side[i] = 0); raft = []; at = 0; moves = 0; };
-  reset();
-  const isM = i => i[0] === "m";
-  const unsafe = () => { for (const b of [0, 1]) { const here = ids.filter(i => side[i] === b && !raft.includes(i)).concat(at === b ? raft : []); const m = here.filter(isM).length, d = here.length - m; if (m > 0 && d > m) return b; } return -1; };
-  const tok = i => `<button class="tok ${raft.includes(i) ? "onraft" : ""}" data-i="${i}">${isM(i) ? MON[TOK[i]] : MON.demon}</button>`;
-  const draw = (msg = "") => {
-    const bank = b => ids.filter(i => side[i] === b && !raft.includes(i)).map(tok).join("");
-    el.innerHTML = `<div class="river"><div class="bank left">${bank(0)}</div><div class="water"><div class="raft ${at ? "r" : "l"}">${raft.map(tok).join("")}<i class="logs"></i></div></div><div class="bank right">${bank(1)}</div></div>
-      <div class="row"><button class="btn primary" id="go" ${raft.length ? "" : "disabled"}>⛵ ${api.tr("Переправиться", "Cross", "ကူးမယ်")}</button><span class="dim">${api.tr("Переправ", "Crossings", "ကူးဖြတ်မှု")}: <b>${moves}</b></span></div>${msg ? `<p class="note bad">${msg}</p>` : ""}`;
-    el.querySelectorAll(".tok").forEach(b => b.onclick = () => {
-      const i = b.dataset.i;
-      if (raft.includes(i)) { raft = raft.filter(x => x !== i); side[i] = at; }
-      else if (side[i] === at && raft.length < 2) raft.push(i);
-      else return;
-      api.sfx("wood"); draw();
-    });
-    el.querySelector("#go").onclick = () => {
-      at = 1 - at; raft.forEach(i => side[i] = at); moves++; api.sfx("splash");
-      const bad = unsafe();
-      if (bad >= 0) { fails++; api.mistake(); api.sfx("fail"); draw(api.tr("Демонов на берегу оказалось больше, чем монахов, и они утащили монахов под воду! Всё сначала.", "There were more demons than monks on a bank, and they dragged the monks under! Start again.", "ကမ်းတစ်ဖက်မှာ နတ်ဆိုးတွေက ဘုန်းကြီးတွေထက် များသွားလို့ ဘုန်းကြီးတွေကို ရေထဲ ဆွဲချသွားပြီ! အစက ပြန်စပါ။")); setTimeout(() => { reset(); draw(); }, 2400); return; }
-      draw();
-      if (ids.every(i => side[i] === 1)) { el.dataset.done = 1; setTimeout(() => api.done({ good: moves <= 13 && fails === 0, moves, par: 11 }), 700); }
-    };
-  };
-  draw();
-}
-
-// ═════ 5. Flaming Mountain: each wave of the fan flips a square and its four neighbours
-function firePuzzle(el, api) {
-  const n = 5; let on, par, moves = 0;
-  let presses; do { on = Array(n * n).fill(false); presses = shuffle([...Array(n * n).keys()]).slice(0, 7); presses.forEach(c => flip(c)); par = presses.length; } while (on.filter(Boolean).length < 9);
-  el._t = { presses };
-  function flip(c) { const x = c % n, y = c / n | 0; [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < n && Y < n) on[Y * n + X] = !on[Y * n + X]; }); }
-  const FL = `<svg viewBox="0 0 100 100" class="fl"><path d="M50 92c-22 0-32-14-28-32 4-14 14-18 16-34 10 10 10 22 8 30 6-4 10-12 8-22 16 12 26 30 20 44-4 10-12 14-24 14z" fill="#e0532e"/><path d="M50 92c-12 0-18-8-14-18 2-8 8-10 10-18 8 10 14 18 12 26-2 6-4 10-8 10z" fill="#f2a33a"/></svg>`;
-  const draw = () => {
-    el.innerHTML = `<div class="fire" style="--n:${n}">${on.map((v, c) => `<button class="fc ${v ? "burn" : ""}" data-c="${c}">${v ? FL : `<span class="ash"></span>`}</button>`).join("")}</div><p class="dim center">${api.tr("Взмахов", "Waves", "ယပ်ခတ်ခဲ့တာ")}: <b>${moves}</b> · ${api.tr("Огней", "Fires", "မီးတွေ")}: <b>${on.filter(Boolean).length}</b></p>`;
-    el.querySelector(".fire").onclick = e => { const b = e.target.closest(".fc"); if (!b || el.dataset.done) return; flip(+b.dataset.c); moves++; api.sfx("wind"); draw(); el.querySelector(`.fc[data-c="${b.dataset.c}"]`).classList.add("fanned");
-      if (on.every(v => !v)) { el.dataset.done = 1; el.querySelector(".fire").classList.add("solved"); setTimeout(() => api.done({ good: moves <= par + 3, moves, par }), 900); } };
-  };
-  draw();
-}
-
-// ═════ 6. Spider Cave: drag the knots so that no two threads cross
-function webPuzzle(el, api) {
-  const pts = [], E = [];
-  for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) pts.push({ x, y });
-  const id = (x, y) => y * 3 + x;
-  for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) { if (x < 2) E.push([id(x, y), id(x + 1, y)]); if (y < 2) E.push([id(x, y), id(x, y + 1)]); if (x < 2 && y < 2) E.push(Math.random() < .5 ? [id(x, y), id(x + 1, y + 1)] : [id(x + 1, y), id(x, y + 1)]); }
-  const order = shuffle([...Array(9).keys()]);
-  const P = pts.map((_, i) => { const k = order.indexOf(i), a = k / 9 * Math.PI * 2 - Math.PI / 2; return { x: 50 + 38 * Math.cos(a), y: 52 + 38 * Math.sin(a) }; });
-  const cross = (a, b, c, d) => { if (a === c || a === d || b === c || b === d) return false; const o = (p, q, r) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)); const A = P[a], B = P[b], C = P[c], D = P[d]; return o(A, B, C) !== o(A, B, D) && o(C, D, A) !== o(C, D, B); };
-  const bad = () => { const s = new Set(); for (let i = 0; i < E.length; i++) for (let j = i + 1; j < E.length; j++) if (cross(...E[i], ...E[j])) { s.add(i); s.add(j); } return s; };
-  if (bad().size === 0) return webPuzzle(el, api);
-  let moves = 0, drag = -1; el._t = { pts };
-  el.innerHTML = `<div class="web"><svg viewBox="0 0 100 104" id="wsvg"><path d="M50 0v8" stroke="#bbb" stroke-width=".4"/><g id="lines"></g><g id="knots"></g></svg></div><p class="dim center" id="wst"></p>`;
-  const svg = el.querySelector("#wsvg");
-  const paint = () => {
-    const b = bad();
-    svg.querySelector("#lines").innerHTML = E.map(([a, c], i) => `<line x1="${P[a].x}" y1="${P[a].y}" x2="${P[c].x}" y2="${P[c].y}" class="${b.has(i) ? "x" : "ok"}"/>`).join("");
-    svg.querySelector("#knots").innerHTML = P.map((p, i) => `<g class="knot ${drag === i ? "drag" : ""}" data-i="${i}" transform="translate(${p.x} ${p.y})"><circle r="4.2"/><circle r="1.6" class="in"/></g>`).join("");
-    el.querySelector("#wst").innerHTML = `${api.tr("Перемещений", "Moves", "လှုပ်ရှားမှု")}: <b>${moves}</b> · ${api.tr("Пересечений", "Crossings", "ကူးဖြတ်မှု")}: <b>${b.size ? b.size : 0}</b>`;
-    return b;
-  };
-  paint();
-  const pt = e => { const r = svg.getBoundingClientRect(); return { x: Math.max(3, Math.min(97, (e.clientX - r.left) / r.width * 100)), y: Math.max(3, Math.min(101, (e.clientY - r.top) / r.height * 104)) }; };
-  svg.addEventListener("pointerdown", e => { const k = e.target.closest(".knot"); if (!k || el.dataset.done) return; drag = +k.dataset.i; svg.setPointerCapture(e.pointerId); paint(); });
-  svg.addEventListener("pointermove", e => { if (drag < 0) return; P[drag] = pt(e); paint(); });
-  const up = () => { if (drag < 0) return; drag = -1; moves++; api.sfx("pluck"); const b = paint(); if (!b.size) { el.dataset.done = 1; el.querySelector(".web").classList.add("solved"); setTimeout(() => api.done({ good: moves <= 14, moves }), 900); } };
-  svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
-}
 
 export const TRIALS = [
   { id: "seal", zh: "五行山", scene: "mountain", name: L("Гора Пяти Стихий", "Five Elements Mountain", "ပဉ္စဓာတ်တောင်"),
@@ -261,7 +12,19 @@ export const TRIALS = [
       L("Начинайте с углов и краёв: у них меньше всего вариантов.", "Start with the corners and edges: they have the fewest options.", "ထောင့်တွေနဲ့ အစွန်းတွေကနေ စပါ: ရွေးစရာ အနည်းဆုံးပဲ။"),
       L("Прямая линия у края может лежать только вдоль края.", "A straight piece on the edge can only lie along the edge.", "အစွန်းမှာရှိတဲ့ မျဉ်းဖြောင့်က အစွန်းအတိုင်းပဲ လှဲနိုင်တယ်။")],
     outro: [["wukong", L("Свобода! Пятьсот лет я ждал этого дня. Наставник, теперь я твой ученик.", "Free! Five hundred years I waited for this day. Master, I am your disciple now.", "လွတ်ပြီ! ဒီနေ့ကို နှစ်ငါးရာ စောင့်ခဲ့တာ။ ဆရာ၊ အခုကစပြီး ကျွန်တော် ဆရာ့တပည့်ပါ။")], ["tang", L("Тогда в путь. До Запада далеко.", "Then let us go. The West is far away.", "ဒါဆို ခရီးဆက်ကြစို့။ အနောက်က ဝေးသေးတယ်။")]],
+    coop: L("Вдвоём: фрагменты поделены в шахматном порядке. Вы поворачиваете только фрагменты своего цвета, остальные — спутник.", "For two: the pieces are split like a chessboard. You turn only the pieces of your colour; your partner turns the rest.", "နှစ်ယောက်: အပိုင်းတွေကို စစ်တုရင်ကွက်လို ခွဲထားတယ်။ ကိုယ့်အရောင် အပိုင်းတွေကိုပဲ လှည့်နိုင်တယ်၊ ကျန်တာကို အဖော်က လှည့်တယ်။"),
     mount: sealPuzzle },
+  { id: "wind", zh: "黄风岭", scene: "wind", name: L("Хребет Жёлтого Ветра", "Yellow Wind Ridge", "လေဝါ တောင်တန်း"),
+    intro: [["huangfeng", L("Я Жёлтый Ветер! Мой ветер несёт всё, пока не ударит о скалу. Танского монаха я уже унёс в свою пещеру.", "I am the Yellow Wind! My wind carries everything off until it hits a rock. I've already blown the Tang monk into my cave.", "ငါက လေဝါ နတ်ဆိုး! ငါ့လေက ကျောက်တုံးနဲ့ မတိုက်မချင်း အရာအားလုံးကို လွင့်ပါသွားစေတယ်။ ထန်ဘုန်းကြီးကို ငါ့ဂူထဲ လွင့်ပို့ပြီးပြီ။")],
+      ["wukong", L("Бодхисаттва Линцзи оставила здесь Пилюлю, что усмиряет ветер. Мне надо до неё добраться, а Бацзе пусть пробьётся к учителю.", "Bodhisattva Lingji left the Wind-Fixing Pill here. I need to reach it, and Bajie must get through to the master.", "လင်ကျိ ဗောဓိသတ္တက လေငြိမ်ဆေးလုံးကို ဒီမှာ ထားခဲ့တယ်။ ကျွန်တော် အဲဒါဆီ ရောက်ရမယ်၊ ပါကျဲက ဆရာ့ဆီ ရောက်အောင် သွားရမယ်။")],
+      ["bajie", L("Только ветер не даёт остановиться! Как дунет — лечу, пока во что-нибудь не врежусь.", "But the wind won't let you stop! Once it blows, I fly until I crash into something.", "ဒါပေမယ့် လေက ရပ်ခွင့်မပေးဘူး! တိုက်လိုက်တာနဲ့ တစ်ခုခုနဲ့ မဆောင့်မချင်း လွင့်သွားတာပဲ။")]],
+    rules: L("Выберите героя и направление: ветер несёт его по прямой, пока не остановит скала, край ущелья или другой герой. Приведите Укуна к пилюле 丹, а Бацзе — к учителю; остановиться нужно точно на месте. Ходить можно стрелками, свайпом по полю или клавишами. Ущелий два.", "Pick a hero and a direction: the wind carries him in a straight line until a rock, the edge of the gorge or the other hero stops him. Bring Wukong to the pill 丹 and Bajie to the master; each must stop exactly on the spot. Use the arrows, swipe on the board or press the arrow keys. There are two gorges.", "သူရဲကောင်းနဲ့ ဦးတည်ရာကို ရွေးပါ: ကျောက်တုံး၊ ချောက်အစွန်း ဒါမှမဟုတ် နောက်သူရဲကောင်းက မတားမချင်း လေက တည့်တည့် သယ်သွားတယ်။ ဝူခုန်းကို 丹 ဆေးလုံးဆီ၊ ပါကျဲကို ဆရာ့ဆီ ပို့ပါ၊ နေရာမှာ တိတိကျကျ ရပ်ရမယ်။ မြှားခလုတ်၊ ကွက်ပေါ်မှာ ပွတ်ဆွဲတာ ဒါမှမဟုတ် ကီးဘုတ်မြှားနဲ့ ရွှေ့ပါ။ ချောက် နှစ်ခု ရှိတယ်။"),
+    coop: L("Вдвоём: каждый ведёт одного героя — первый игрок Укуна, второй Бацзе. Герои останавливают друг друга, так что договаривайтесь, кто ходит первым.", "For two: each of you steers one hero, the first player Wukong and the second Bajie. The heroes stop each other, so agree on who moves first.", "နှစ်ယောက်: တစ်ယောက်ကို သူရဲကောင်း တစ်ယောက်စီ ထိန်းတယ်၊ ပထမ ကစားသူက ဝူခုန်း၊ ဒုတိယက ပါကျဲ။ သူရဲကောင်းတွေက အချင်းချင်း တားတတ်လို့ ဘယ်သူ အရင်သွားမလဲ တိုင်ပင်ပါ။"),
+    hints: [L("Думайте с конца: откуда можно прилететь прямо на цель? За целью должно быть что-то, что остановит.", "Think backwards: from where can you fly straight onto the target? Something just beyond it has to stop you.", "နောက်ပြန် စဉ်းစားပါ: ဘယ်နေရာကနေ ပစ်မှတ်ပေါ် တည့်တည့် ရောက်နိုင်လဲ။ ပစ်မှတ်ရဲ့ နောက်မှာ တားမယ့် အရာ ရှိရမယ်။"),
+      L("Если за целью пусто, туда может встать второй герой и послужить стенкой.", "If nothing stands beyond the target, the other hero can park there and act as a wall.", "ပစ်မှတ်နောက်မှာ ဘာမှမရှိရင် နောက်သူရဲကောင်းက အဲဒီမှာ ရပ်ပြီး နံရံအဖြစ် ကူနိုင်တယ်။"),
+      L("Над полем указан минимум ходов. «Сначала» возвращает героев на старт, но сделанные ходы не обнуляет.", "The fewest moves is shown above the board. Restart puts the heroes back but doesn't wipe the moves you've made.", "အနည်းဆုံး လှုပ်ရှားမှုကို ကွက်အပေါ်မှာ ပြထားတယ်။ «အစက ပြန်စ» က သူရဲကောင်းတွေကို နေရာဟောင်း ပြန်ပို့ပေမယ့် ရွှေ့ပြီးသား အကြိမ်တွေကို မဖျက်ဘူး။")],
+    outro: [["huangfeng", L("Мой ветер… стих? Это всё Линцзи с её пилюлей!", "My wind… died down? It's that Lingji and her pill!", "ငါ့လေ… ငြိမ်သွားပြီလား။ လင်ကျိနဲ့ သူ့ဆေးလုံးကြောင့်ပဲ!")], ["tang", L("Ученики, вы пришли за мной сквозь бурю. Идём дальше.", "Disciples, you came for me through the storm. Let us go on.", "တပည့်တို့၊ မုန်တိုင်းကို ဖြတ်ပြီး ငါ့ကို လာကယ်ကြတယ်။ ဆက်သွားကြစို့။")]],
+    mount: windPuzzle },
   { id: "fruit", zh: "人参果", scene: "temple", name: L("Плоды женьшеня", "The Ginseng Fruit", "ဂျင်ဆင်းသီး"),
     intro: [["monk", L("Плоды женьшеня в моём саду зреют раз в девять тысяч лет. Один плод подменили пустышкой.", "The ginseng fruit in my garden ripens once in nine thousand years. One of them has been replaced with a fake.", "ကျွန်ုပ်ဥယျာဉ်က ဂျင်ဆင်းသီးတွေဟာ နှစ်ကိုးထောင်မှ တစ်ခါ မှည့်တယ်။ တစ်လုံးကို အတုနဲ့ လဲထားတယ်။")],
       ["bajie", L("Можно я съем все, а потом скажу, какой был невкусный?", "Can I eat them all and then tell you which one tasted wrong?", "အကုန်စားပြီးမှ ဘယ်တစ်လုံး အရသာမှားလဲ ပြောရင် ရမလား။")],
@@ -271,6 +34,7 @@ export const TRIALS = [
       L("Второй сад: начните с 4 против 4. Если равновесие, подделка среди четырёх на столе, а восемь на весах настоящие и годятся как эталон.", "Second garden: start with 4 against 4. If they balance, the fake is among the four on the table, and the eight on the scales are genuine and can serve as a reference.", "ဒုတိယ ဥယျာဉ်: ၄ လုံးနဲ့ ၄ လုံး စချိန်ပါ။ ညီမျှရင် အတုက စားပွဲပေါ်က လေးလုံးထဲမှာ၊ ချိန်ခွင်ပေါ်က ရှစ်လုံးက အစစ်တွေ — နမူနာအဖြစ် သုံးနိုင်တယ်။"),
       L("Если левая чаша перевесила: подделка либо тяжёлая слева, либо лёгкая справа. Во втором взвешивании переложите часть плодов на другую чашу, часть уберите и добавьте эталонные.", "If the left pan is heavier: the fake is either heavy on the left or light on the right. For the second weighing, swap some fruits across, take some off and add reference ones.", "ဘယ်ခွက် ပိုလေးရင်: အတုက ဘယ်ဘက်မှာ လေးနေတာ ဒါမှမဟုတ် ညာဘက်မှာ ပေါ့နေတာ။ ဒုတိယ အကြိမ်မှာ အချို့ကို တစ်ဖက်ခွက်ကို ပြောင်း၊ အချို့ကို ဖယ်ပြီး နမူနာ အစစ်တွေ ထည့်ပါ။")],
     outro: [["monk", L("Вы честны и умны. Ешьте настоящие плоды: каждый продлевает жизнь на сорок семь тысяч лет.", "You are honest and clever. Eat the real fruit: each one adds forty-seven thousand years to your life.", "သင်တို့ ရိုးသားပြီး ဉာဏ်ကောင်းတယ်။ အစစ်တွေကို စားပါ: တစ်လုံးက သက်တမ်းကို နှစ်ပေါင်း လေးသောင်းခုနစ်ထောင် တိုးစေတယ်။")], ["bajie", L("Сорок семь тысяч лет… А можно ещё один?", "Forty-seven thousand years… Can I have another?", "လေးသောင်းခုနစ်ထောင်… နောက်တစ်လုံး ရမလား။")]],
+    coop: L("Вдвоём: у каждого своя чаша весов. Договоритесь, что кладёте, а взвесить и назвать подделку может любой.", "For two: each of you has one pan of the scales. Agree on what goes where; either of you can weigh and name the fake.", "နှစ်ယောက်: တစ်ယောက်ကို ချိန်ခွင်ခွက် တစ်ခုစီ။ ဘာတင်မလဲ တိုင်ပင်ပါ၊ ချိန်တာနဲ့ အတုကို ညွှန်ပြတာကို ဘယ်သူမဆို လုပ်နိုင်တယ်။"),
     mount: weighPuzzle },
   { id: "bones", zh: "白骨精", scene: "bones", name: L("Трижды Белая Кость", "The White Bone Demon", "အရိုးဖြူ နတ်ဆိုးမ"),
     intro: [["baigu", L("Мясо танского монаха дарует бессмертие… Я войду к ним в доверие в чужом обличье.", "The flesh of the Tang monk grants immortality… I'll win their trust in a borrowed shape.", "ထန်ဘုန်းကြီးရဲ့ အသားက မသေမျိုး ဖြစ်စေတယ်… သူများအသွင်နဲ့ သူတို့ယုံကြည်မှုကို ရယူမယ်။")],
@@ -281,7 +45,30 @@ export const TRIALS = [
       L("«X и Y одного рода» — правда, если оба люди или оба демоны.", "'X and Y are the same kind' is true if both are human or both are demons.", "«X နဲ့ Y အမျိုးတူ» ဆိုတာ နှစ်ယောက်လုံး လူ ဒါမှမဟုတ် နှစ်ကောင်လုံး နတ်ဆိုးဆိုရင် မှန်တယ်။"),
       L("Слова демона ложны всегда, даже когда он говорит о себе.", "A demon's words are always false, even when it talks about itself.", "နတ်ဆိုးရဲ့ စကားက အမြဲ မှားတယ်၊ သူ့အကြောင်း သူပြောရင်တောင် မှားတယ်။")],
     outro: [["baigu", L("Нет! Кость к кости, прах к праху…", "No! Bone to bone, dust to dust…", "မဟုတ်ဘူး! အရိုးက အရိုးဆီ၊ ဖုန်က ဖုန်ဆီ…")], ["wukong", L("Белая Кость рассыпалась. Видишь, наставник, я был прав.", "The White Bone Demon is dust. You see, Master, I was right.", "အရိုးဖြူ နတ်ဆိုးမ ဖုန်မှုန့် ဖြစ်သွားပြီ။ မြင်လား ဆရာ၊ ကျွန်တော် မှန်တယ်။")], ["tang", L("Прости меня, ученик. Глаза обманывают, а логика нет.", "Forgive me, disciple. Eyes deceive, but logic does not.", "ခွင့်လွှတ်ပါ တပည့်။ မျက်လုံးက လှည့်စားတတ်တယ်၊ ယုတ္တိက မလှည့်စားဘူး။")]],
+    coop: L("Вдвоём: каждый слышит только половину путников. Перескажите друг другу, кто что сказал. Огненными глазами смотрит кто-то один, и увиденное знает только он.", "For two: each of you hears only half of the travellers. Tell each other who said what. Only one of you can use the fiery eyes, and only that player sees what they reveal.", "နှစ်ယောက်: တစ်ယောက်စီက ခရီးသွားတွေရဲ့ တစ်ဝက်ကိုပဲ ကြားရတယ်။ ဘယ်သူ ဘာပြောလဲ အချင်းချင်း ပြန်ပြောပြပါ။ မီးမျက်လုံးကို တစ်ယောက်ပဲ သုံးနိုင်ပြီး မြင်တာကို သူပဲ သိတယ်။"),
     mount: bonesPuzzle },
+  { id: "gourd", zh: "平顶山", scene: "flat", name: L("Гора Пиндин", "Flat-Top Mountain", "ထိပ်ပြား တောင်"),
+    intro: [["jinjiao", L("Я Золотой Рог, а это мой брат Серебряный Рог. У нас пять сокровищ, и лучшее — пурпурная тыква. Позову по имени, отзовёшься — и ты внутри.", "I am Golden Horn, and this is my brother Silver Horn. We have five treasures, and the best is the purple gourd. I call your name, you answer, and you're inside.", "ငါက ရွှေဦးချို၊ ဒါက ငါ့ညီ ငွေဦးချို။ ငါတို့မှာ ရတနာ ငါးမျိုးရှိတယ်၊ အကောင်းဆုံးက ခရမ်းရောင် ဘူးသီး။ နာမည်ခေါ်လို့ ထူးမိရင် အထဲ ရောက်သွားပြီ။")],
+      ["jinjiao", L("Сыграем. Сокровища лежат в пещерах. Ходим по очереди, берём сколько хотим, но из одной пещеры. Кто возьмёт последнее, тот и победил.", "Let's play. The treasures lie in caves. We take turns, as many as we like, but from one cave. Whoever takes the last one wins.", "ကစားကြမယ်။ ရတနာတွေက ဂူတွေထဲမှာ။ အလှည့်ကျ ယူမယ်၊ ကြိုက်သလောက် ယူလို့ရတယ်၊ ဒါပေမယ့် ဂူတစ်ခုတည်းက။ နောက်ဆုံးတစ်ခု ယူတဲ့သူ နိုင်တယ်။")],
+      ["bajie", L("Главное — не отзываться, если позовут. Бацзе здесь нет, Бацзе ушёл…", "The main thing is not to answer if they call. Bajie isn't here, Bajie's gone…", "အဓိကက ခေါ်ရင် မထူးဖို့ပဲ။ ပါကျဲ ဒီမှာ မရှိဘူး၊ ပါကျဲ ထွက်သွားပြီ…")]],
+    rules: L("Вы ходите первыми, затем Серебряный Рог. За ход можно взять сколько угодно сокровищ, но только из одной пещеры. Кто возьмёт последнее сокровище, побеждает. Выиграйте три поединка: в каждом есть выигрышная стратегия, а Серебряный Рог не ошибается. Нажмите на сокровище, чтобы взять его и все, что правее.", "You move first, then Silver Horn. On a move you may take any number of treasures, but from one cave only. Whoever takes the last treasure wins. Win three contests: each one has a winning strategy, and Silver Horn never slips. Tap a treasure to take it and everything to its right.", "ကိုယ်က အရင်ရွှေ့တယ်၊ ပြီးရင် ငွေဦးချို။ တစ်ကြိမ်မှာ ရတနာ ကြိုက်သလောက် ယူနိုင်တယ်၊ ဒါပေမယ့် ဂူတစ်ခုတည်းကပဲ။ နောက်ဆုံး ရတနာကို ယူတဲ့သူ နိုင်တယ်။ ပြိုင်ပွဲ သုံးပွဲ နိုင်ပါ: ပွဲတိုင်းမှာ နိုင်မယ့်နည်း ရှိတယ်၊ ငွေဦးချိုကလည်း ဘယ်တော့မှ မမှားဘူး။ ရတနာကို နှိပ်ရင် အဲဒါနဲ့ သူ့ညာဘက်က အားလုံးကို ယူမယ်။"),
+    coop: L("Вдвоём: вы одна команда и ходите по очереди — один ход ваш, следующий спутника. Стратегию нужно знать обоим.", "For two: you're one team and take turns, one move yours and the next your partner's. Both of you need to know the strategy.", "နှစ်ယောက်: တစ်သင်းတည်း ဖြစ်ပြီး အလှည့်ကျ ရွှေ့တယ်၊ တစ်ကြိမ် ကိုယ်၊ နောက်တစ်ကြိမ် အဖော်။ နှစ်ယောက်လုံး နိုင်နည်းကို သိရမယ်။"),
+    hints: [L("Две одинаковые пещеры выигрывают для того, кто их оставил: повторяйте ход соперника в другой пещере.", "Two equal caves win for whoever leaves them: just copy your opponent's move in the other cave.", "တူညီတဲ့ ဂူနှစ်ခု ချန်ထားခဲ့သူက နိုင်တယ်: ပြိုင်ဘက်ရဲ့ ရွှေ့ကွက်ကို နောက်ဂူမှာ လိုက်လုပ်ပါ။"),
+      L("Разложите число сокровищ в каждой пещере на четвёрки, двойки и единицы: 7 = 4 + 2 + 1, 5 = 4 + 1, 6 = 4 + 2.", "Break the count in each cave into fours, twos and ones: 7 = 4 + 2 + 1, 5 = 4 + 1, 6 = 4 + 2.", "ဂူတိုင်းက ရတနာ အရေအတွက်ကို လေး၊ နှစ်၊ တစ် ခွဲပါ: ၇ = ၄ + ၂ + ၁၊ ၅ = ၄ + ၁၊ ၆ = ၄ + ၂။"),
+      L("Оставляйте сопернику позицию, где по всем пещерам вместе четвёрок чётное число, двоек чётное и единиц чётное. Из неё он не выиграет.", "Leave your opponent a position where, across all caves together, there's an even number of fours, of twos and of ones. From there he can't win.", "ဂူအားလုံး ပေါင်းရင် လေးတွေ၊ နှစ်တွေ၊ တစ်တွေ စုံကိန်း ဖြစ်နေတဲ့ အနေအထားကို ပြိုင်ဘက်ကို ချန်ပေးပါ။ အဲဒီကနေ သူ မနိုင်နိုင်ဘူး။")],
+    outro: [["jinjiao", L("Брат, мы проиграли собственные сокровища… Отдай им тыкву.", "Brother, we've lost our own treasures… Give them the gourd.", "ညီလေး၊ ကိုယ့်ရတနာတွေ ကိုယ် ရှုံးသွားပြီ… ဘူးသီးကို သူတို့ကို ပေးလိုက်။")], ["wukong", L("Эй, Золотой Рог! …Не отзывается. Учится.", "Hey, Golden Horn! …He won't answer. He's learning.", "ဟေး၊ ရွှေဦးချို! …မထူးဘူး။ သင်ခန်းစာ ရသွားပြီ။")]],
+    mount: gourdPuzzle },
+  { id: "casket", zh: "车迟国", scene: "palace", name: L("Царство Чэчи", "Cart-Slow Kingdom", "ချယ်ချီ နိုင်ငံ"),
+    intro: [["huli", L("Я Даос Силы Тигра, наставник этого царства. Состязание: в шкафу четыре створки, за каждой сокровище. Угадаете все четыре — уйдёте с миром.", "I am the Tiger Power Immortal, teacher to this kingdom. A contest: the cabinet has four doors with a treasure behind each. Guess all four and you may go in peace.", "ငါက ကျားအား တာအိုဆရာ၊ ဒီနိုင်ငံရဲ့ ဆရာ။ ပြိုင်ပွဲ: ဗီရိုမှာ တံခါးလေးချပ် ရှိတယ်၊ တစ်ချပ်စီနောက်မှာ ရတနာတစ်ခု။ လေးခုလုံး မှန်အောင် ခန့်မှန်းနိုင်ရင် ငြိမ်းငြိမ်းချမ်းချမ်း ထွက်သွားနိုင်တယ်။")],
+      ["wukong", L("Сокровищ шесть, и все разные. Я влечу мушкой и послушаю колокольчики: золотой звенит, если сокровище за своей створкой, серебряный — если оно в шкафу, но за другой.", "Six treasures, all different. I'll fly in as a fly and listen to the bells: a gold bell rings for a treasure behind the right door, a silver one for a treasure that's in there but behind another door.", "ရတနာ ခြောက်မျိုး၊ အားလုံး မတူဘူး။ ယင်ကောင်ဖြစ်ပြီး ဝင်ပျံပြီး ခေါင်းလောင်းသံ နားထောင်မယ်: ရတနာက တံခါးမှန်နောက်မှာ ဆိုရင် ရွှေခေါင်းလောင်း မြည်မယ်၊ ဗီရိုထဲ ရှိပေမယ့် တခြား တံခါးနောက်မှာ ဆိုရင် ငွေခေါင်းလောင်း မြည်မယ်။")],
+      ["tang", L("Только без обмана, Укун.", "Just no cheating, Wukong.", "မလိမ်နဲ့နော် ဝူခုန်း။")]],
+    rules: L("За четырьмя створками — четыре разных сокровища из шести. Соберите догадку и откройте створки. Золотой колокольчик: сокровище угадано и стоит на своём месте. Серебряный: такое сокровище есть, но за другой створкой. Какой колокольчик к какой створке относится, не говорят. Попыток восемь.", "Behind four doors are four different treasures out of six. Build a guess and open the doors. A gold bell: a treasure is right and in its place. A silver bell: that treasure is there, but behind another door. You aren't told which bell goes with which door. You have eight tries.", "တံခါးလေးချပ် နောက်မှာ ရတနာ ခြောက်မျိုးထဲက မတူတဲ့ လေးမျိုး ရှိတယ်။ ခန့်မှန်းချက် စီပြီး တံခါးဖွင့်ပါ။ ရွှေခေါင်းလောင်း: ရတနာ မှန်ပြီး နေရာလည်း မှန်တယ်။ ငွေခေါင်းလောင်း: အဲဒီ ရတနာ ရှိတယ်၊ ဒါပေမယ့် တခြား တံခါးနောက်မှာ။ ဘယ်ခေါင်းလောင်းက ဘယ်တံခါးအတွက်လဲ မပြောဘူး။ အကြိမ် ရှစ်ကြိမ် ရတယ်။"),
+    coop: L("Вдвоём: первый игрок слышит только золотые колокольчики, второй — только серебряные. Сообщайте друг другу, что услышали. Собирать догадку может любой.", "For two: the first player hears only the gold bells, the second only the silver ones. Tell each other what you heard. Either of you can build the guess.", "နှစ်ယောက်: ပထမ ကစားသူက ရွှေခေါင်းလောင်းပဲ ကြားရပြီး ဒုတိယက ငွေခေါင်းလောင်းပဲ ကြားရတယ်။ ကြားတာကို အချင်းချင်း ပြောပြပါ။ ခန့်မှန်းချက်ကို ဘယ်သူမဆို စီနိုင်တယ်။"),
+    hints: [L("Золотые и серебряные вместе — столько сокровищ из вашей догадки действительно лежит в шкафу.", "Gold plus silver tells you how many of your guessed treasures really are in the cabinet.", "ရွှေနဲ့ ငွေ ပေါင်းရင် ခန့်မှန်းထားတဲ့ ရတနာထဲက ဘယ်နှစ်ခု ဗီရိုထဲမှာ တကယ် ရှိလဲ သိရတယ်။"),
+      L("Сокровищ шесть, а створок четыре, значит двух сокровищ в шкафу нет. Сначала выясните каких.", "There are six treasures and four doors, so two treasures aren't in the cabinet. Find out which ones first.", "ရတနာ ခြောက်မျိုး၊ တံခါး လေးချပ်ပဲ ရှိလို့ ရတနာ နှစ်မျိုး ဗီရိုထဲ မရှိဘူး။ ဘယ်နှစ်မျိုးလဲ အရင်ရှာပါ။"),
+      L("Когда набор известен, переставляйте сокровища и следите, как меняется число золотых колокольчиков.", "Once you know the set, move the treasures around and watch how the number of gold bells changes.", "ဘယ်ရတနာတွေလဲ သိပြီဆိုရင် နေရာ ရွှေ့ကြည့်ပြီး ရွှေခေါင်းလောင်း အရေအတွက် ဘယ်လို ပြောင်းလဲ ကြည့်ပါ။")],
+    outro: [["huli", L("Все четыре?! Не может быть… Ваше величество, это колдовство!", "All four?! It can't be… Your Majesty, this is sorcery!", "လေးခုလုံးလား?! မဖြစ်နိုင်ဘူး… အရှင်မင်းကြီး၊ ဒါ မှော်ပညာပဲ!")], ["wukong", L("Не колдовство, а логика. Ну и немного хорошего слуха.", "Not sorcery, logic. And a little good hearing.", "မှော်ပညာ မဟုတ်ဘူး၊ ယုတ္တိ။ နားကောင်းတာလည်း နည်းနည်း ပါတယ်။")]],
+    mount: casketPuzzle },
   { id: "river", zh: "通天河", scene: "river", name: L("Река Тунтянь", "The Tongtian River", "ထုံထျန်း မြစ်"),
     intro: [["sha", L("Река Тунтянь — восемьсот ли в ширину. Есть плот, но на нём помещаются только двое.", "The Tongtian River is eight hundred li wide. There's a raft, but it only holds two.", "ထုံထျန်းမြစ်က လီ ရှစ်ရာ ကျယ်တယ်။ ဖောင်ရှိတယ်၊ ဒါပေမယ့် နှစ်ယောက်ပဲ ဆံ့တယ်။")],
       ["bajie", L("А эти трое из реки предлагают помочь грести. Подозрительно добрые…", "And these three from the river offer to help us row. Suspiciously kind…", "မြစ်ထဲက ဒီသုံးကောင်က လှော်ကူမယ်တဲ့။ သံသယဖြစ်လောက်အောင် သဘောကောင်းနေတယ်…")],
@@ -291,7 +78,19 @@ export const TRIALS = [
       L("Ключевой момент — середина: на тот берег переходят два монаха, а обратно плывут монах и демон.", "The key moment is the middle: two monks go across, and a monk and a demon come back.", "အဓိကအချက်က အလယ်ပိုင်း: ဘုန်းကြီး နှစ်ပါး ကူးသွားပြီး ဘုန်းကြီး တစ်ပါးနဲ့ နတ်ဆိုး တစ်ကောင် ပြန်လာတယ်။"),
       L("Минимум — 11 переправ.", "The minimum is 11 crossings.", "အနည်းဆုံး ၁၁ ကြိမ် ကူးရတယ်။")],
     outro: [["sha", L("Все на месте, никого не утащили.", "Everyone's here, and nobody was dragged under.", "အားလုံး ရောက်ပြီ၊ ဘယ်သူမှ ရေထဲ မဆွဲချခံရဘူး။")], ["bajie", L("Я бы и сам доплыл… наверное.", "I could have swum it myself… probably.", "ကျွန်တော် ကိုယ်တိုင် ကူးနိုင်ပါတယ်… ထင်တာပဲ။")]],
+    coop: L("Вдвоём: каждый отвечает за свой берег. Плот загружает и отправляет тот, у чьего берега он стоит.", "For two: each of you looks after one bank. Whoever's bank the raft is moored at loads it and pushes off.", "နှစ်ယောက်: တစ်ယောက်ကို ကမ်းတစ်ဖက်စီ တာဝန်ယူတယ်။ ဖောင်ဆိုက်နေတဲ့ ကမ်းက လူက တင်ပြီး လွှတ်တယ်။"),
     mount: riverPuzzle },
+  { id: "mirror", zh: "真假猴王", scene: "mountain", name: L("Два Укуна", "Two Monkey Kings", "ဝူခုန်း နှစ်ယောက်"),
+    intro: [["sha", L("Учитель! Пришли сразу два Укуна, и оба кричат, что настоящий — он.", "Master! Two Wukongs have come at once, and both shout that they're the real one.", "ဆရာ! ဝူခုန်း နှစ်ယောက် တစ်ပြိုင်နက် ရောက်လာတယ်၊ နှစ်ယောက်လုံး ငါက အစစ်လို့ အော်နေကြတယ်။")],
+      ["liuer", L("Я Сунь Укун, Великий Мудрец, равный Небу! А тот — жалкая подделка.", "I am Sun Wukong, the Great Sage Equal to Heaven! That one's a miserable fake.", "ငါက ဆွန်ဝူခုန်း၊ ကောင်းကင်နဲ့ တန်းတူ ပညာရှိကြီး! ဟိုကောင်က အတု ညံ့ညံ့။")],
+      ["tang", L("Даже Гуаньинь не смогла их различить. Смотрите внимательно: подделка всегда в чём-то ошибается.", "Even Guanyin could not tell them apart. Look closely: a fake always gets something wrong.", "ကွမ်ယင်မယ်တော်တောင် ခွဲမခြားနိုင်ခဲ့ဘူး။ သေချာကြည့်ပါ: အတုက တစ်ခုခု အမြဲ မှားတတ်တယ်။")]],
+    rules: L("На картинках два Укуна. Найдите шесть отличий и нажмите на каждое на любой из картинок. Три промаха прощаются, дальше каждый промах — ошибка.", "There are two Wukongs in the pictures. Find six differences and tap each one on either picture. Three misses are forgiven; after that each miss counts as a mistake.", "ပုံထဲမှာ ဝူခုန်း နှစ်ယောက် ရှိတယ်။ ကွာခြားချက် ခြောက်ခု ရှာပြီး ပုံ တစ်ပုံပုံပေါ်မှာ နှိပ်ပါ။ သုံးကြိမ် လွဲတာကို ခွင့်လွှတ်တယ်၊ အဲဒီနောက် လွဲတိုင်း အမှားတစ်ခု။"),
+    coop: L("Вдвоём: каждый видит только своего Укуна. Описывайте друг другу детали, как будто говорите по телефону.", "For two: each of you sees only one Wukong. Describe the details to each other, as if over the phone.", "နှစ်ယောက်: တစ်ယောက်စီက ဝူခုန်း တစ်ယောက်ကိုပဲ မြင်ရတယ်။ ဖုန်းနဲ့ ပြောနေသလို အသေးစိတ်ကို အချင်းချင်း ပြောပြပါ။"),
+    hints: [L("Осмотрите фон: небо, горы, дерево с персиками и облако.", "Check the background: the sky, the mountains, the peach tree and the cloud.", "နောက်ခံကို ကြည့်ပါ: ကောင်းကင်၊ တောင်တွေ၊ မက်မွန်ပင်နဲ့ တိမ်။"),
+      L("Посмотрите на голову: обруч, перья, глаза, рот и уши.", "Look at the head: the headband, the plumes, the eyes, the mouth and the ears.", "ခေါင်းကို ကြည့်ပါ: ခေါင်းစွပ်ကွင်း၊ ငှက်မွေး၊ မျက်လုံး၊ ပါးစပ်နဲ့ နား။"),
+      L("И на одежду: пояс, сапоги, хвост и концы посоха.", "And at the clothes: the sash, the boots, the tail and the ends of the staff.", "အဝတ်အစားကိုလည်း ကြည့်ပါ: ခါးပတ်၊ ဖိနပ်၊ အမြီးနဲ့ တောင်ဝှေး ထိပ်တွေ။")],
+    outro: [["liuer", L("Шестиухая обезьяна разоблачена…", "The six-eared macaque is unmasked…", "နားခြောက်ဖက် မျောက်ကို ဖော်ထုတ်လိုက်ပြီ…")], ["wukong", L("Что ни говори, а я неповторим.", "Say what you like, I'm one of a kind.", "ဘယ်လိုပဲ ပြောပြော ကျွန်တော်က တစ်ယောက်တည်းပဲ။")]],
+    mount: mirrorPuzzle },
   { id: "fire", zh: "火焰山", scene: "fire", name: L("Огненная гора", "The Flaming Mountain", "မီးလျှံတောင်"),
     intro: [["fan", L("Мой банановый веер гасит Огненную гору. Но гора хитрая: взмах гасит огонь в клетке и задевает четырёх её соседей.", "My banana-leaf fan puts out the Flaming Mountain. But the mountain is tricky: a wave of the fan flips a square and its four neighbours.", "ငါ့ငှက်ပျောရွက် ယပ်တောင်က မီးလျှံတောင်ကို ငြိမ်းစေတယ်။ ဒါပေမယ့် တောင်က လှည့်ကွက်ရှိတယ်: ယပ်တစ်ချက် ခတ်ရင် အကွက်တစ်ကွက်နဲ့ ဘေးလေးကွက် ပြောင်းပြန် ဖြစ်တယ်။")],
       ["wukong", L("Потухшее вспыхивает, горящее гаснет. Принцесса, одолжи веер!", "What's out flares up, what's burning goes out. Princess, lend me the fan!", "ငြိမ်းနေတာက တောက်လာမယ်၊ တောက်နေတာက ငြိမ်းမယ်။ မင်းသမီး၊ ယပ်တောင် ငှားပါ!")],
@@ -301,7 +100,19 @@ export const TRIALS = [
       L("Гасите построчно: взмах по клетке во втором ряду гасит огонь прямо над ней. Так огонь сгоняется вниз.", "Work row by row: a wave on a square in the second row puts out the fire directly above it. This chases the fire downwards.", "အတန်းလိုက် ငြိမ်းပါ: ဒုတိယ အတန်းက အကွက်ကို ခတ်ရင် အပေါ်တည့်တည့်က မီး ငြိမ်းတယ်။ ဒီလိုနဲ့ မီးကို အောက်ကို မောင်းချတယ်။"),
       L("Если огонь остался в нижнем ряду, запомните узор, начните заново и подберите взмахи в верхнем ряду.", "If fire is left in the bottom row, remember the pattern, start over and choose different waves in the top row.", "အောက်ဆုံးအတန်းမှာ မီးကျန်ရင် ပုံစံကို မှတ်ထား၊ ပြန်စပြီး အပေါ်ဆုံးအတန်းမှာ မတူတဲ့ ခတ်ချက်တွေ ရွေးပါ။")],
     outro: [["fan", L("Гора погасла… Верните веер.", "The mountain is out… Give me back my fan.", "တောင် ငြိမ်းသွားပြီ… ယပ်တောင် ပြန်ပေး။")], ["wukong", L("Возвращаю. Слово Царя обезьян.", "Here it is. The Monkey King's word.", "ပြန်ပေးပါတယ်။ မျောက်ဘုရင်ရဲ့ ကတိ။")]],
+    coop: L("Вдвоём: склоны поделены в шахматном порядке. Вы машете веером только над клетками своего цвета.", "For two: the slopes are split like a chessboard. You wave the fan only over squares of your colour.", "နှစ်ယောက်: တောင်စောင်းတွေကို စစ်တုရင်ကွက်လို ခွဲထားတယ်။ ကိုယ့်အရောင် အကွက်တွေပေါ်မှာပဲ ယပ်ခတ်နိုင်တယ်။"),
     mount: firePuzzle },
+  { id: "pagoda", zh: "金光寺", scene: "pagoda", name: L("Храм Золотого Света", "Golden Light Temple", "ရွှေအလင်း ကျောင်း"),
+    intro: [["abbot", L("Три года назад с нашей пагоды украли сокровище, и обвинили во всём монахов. Теперь мы метём пагоды, а смотритель каждый день проверяет двор.", "Three years ago the treasure was stolen from our pagoda, and the monks were blamed. Now we sweep the pagodas, and the inspector checks the courtyard every day.", "လွန်ခဲ့တဲ့ သုံးနှစ်က ကျွန်ုပ်တို့ စေတီက ရတနာ ခိုးခံရပြီး ဘုန်းကြီးတွေကို အပြစ်ပုံချခဲ့တယ်။ အခု စေတီတွေကို လှည်းကျင်းရပြီး စစ်ဆေးသူက နေ့တိုင်း ဝင်းကို စစ်တယ်။")],
+      ["abbot", L("Пагоды стоят рядами, и в каждом ряду и столбце все разной высоты. У каждых ворот записано, сколько пагод оттуда видно: высокие заслоняют низкие.", "The pagodas stand in rows, and in each row and column they all differ in height. At each gate it's written how many pagodas you can see from there: tall ones hide the short ones.", "စေတီတွေက အတန်းလိုက် ရှိပြီး အတန်းတိုင်း၊ ကော်လံတိုင်းမှာ အမြင့် မတူကြဘူး။ ဂိတ်တိုင်းမှာ အဲဒီကနေ စေတီ ဘယ်နှစ်ဆူ မြင်ရလဲ ရေးထားတယ်: မြင့်တဲ့ စေတီက နိမ့်တဲ့ စေတီကို ကွယ်တယ်။")],
+      ["tang", L("Поможем им расставить пагоды по записям у ворот.", "Let us help them set out the pagodas as the gates say.", "ဂိတ်တွေမှာ ရေးထားတဲ့အတိုင်း စေတီတွေ နေရာချဖို့ ကူညီကြစို့။")]],
+    rules: L("Заполните двор пагодами высотой от 1 до N ярусов: в каждом ряду и столбце каждая высота встречается ровно один раз. Число у края — сколько пагод видно с этой стороны (низкие за высокой не видны). Нажмите клетку, затем высоту. Двора два.", "Fill the courtyard with pagodas 1 to N storeys tall: each height appears exactly once in every row and column. A number at the edge says how many pagodas can be seen from that side (short ones behind a taller one are hidden). Tap a square, then a height. There are two courtyards.", "ဝင်းကို အထပ် ၁ မှ N ထိ စေတီတွေနဲ့ ဖြည့်ပါ: အတန်းတိုင်း၊ ကော်လံတိုင်းမှာ အမြင့်တစ်မျိုးစီ တစ်ကြိမ်ပဲ ပါရမယ်။ အစွန်းက ဂဏန်းက အဲဒီဘက်ကနေ စေတီ ဘယ်နှစ်ဆူ မြင်ရလဲ ပြတယ် (မြင့်တဲ့ စေတီနောက်က နိမ့်တဲ့ စေတီ မမြင်ရဘူး)။ အကွက်ကို နှိပ်ပြီး အမြင့်ကို နှိပ်ပါ။ ဝင်း နှစ်ခု ရှိတယ်။"),
+    coop: L("Вдвоём: первый игрок стоит у северных и западных ворот, второй — у южных и восточных, и каждый видит только свои числа. Расставлять пагоды может любой.", "For two: the first player stands at the north and west gates, the second at the south and east gates, and each sees only their own numbers. Either of you can place pagodas.", "နှစ်ယောက်: ပထမ ကစားသူက မြောက်နဲ့ အနောက် ဂိတ်မှာ၊ ဒုတိယက တောင်နဲ့ အရှေ့ ဂိတ်မှာ ရပ်ပြီး တစ်ယောက်စီ ကိုယ့်ဂဏန်းကိုပဲ မြင်ရတယ်။ စေတီကို ဘယ်သူမဆို နေရာချနိုင်တယ်။"),
+    hints: [L("Если у ворот 1, первой от них стоит самая высокая пагода.", "If a gate says 1, the tallest pagoda stands first in that line.", "ဂိတ်မှာ ၁ ဆိုရင် အမြင့်ဆုံး စေတီက ဂိတ်နဲ့ အနီးဆုံးမှာ ရှိတယ်။"),
+      L("Если у ворот число равно размеру двора, пагоды стоят по росту: 1, 2, 3…", "If a gate's number equals the size of the courtyard, the pagodas stand in order of height: 1, 2, 3…", "ဂိတ်က ဂဏန်းက ဝင်းအရွယ်နဲ့ တူရင် စေတီတွေက အမြင့်အလိုက် စီထားတယ်: ၁၊ ၂၊ ၃…"),
+      L("Чем больше число у ворот, тем дальше от них самая высокая пагода.", "The bigger the number at a gate, the farther from it the tallest pagoda stands.", "ဂိတ်က ဂဏန်း ကြီးလေ အမြင့်ဆုံး စေတီက ဂိတ်နဲ့ ဝေးလေပဲ။")],
+    outro: [["abbot", L("Смотритель доволен! А сокровище пагоды, говорят, унёс дракон из озера…", "The inspector is pleased! And the pagoda's treasure, they say, was taken by a dragon from the lake…", "စစ်ဆေးသူ ကျေနပ်သွားပြီ! စေတီရဲ့ ရတနာကိုတော့ ကန်ထဲက နဂါးက ယူသွားတယ်လို့ ပြောကြတယ်…")], ["wukong", L("Дракон? Это уже по моей части.", "A dragon? Now that's my department.", "နဂါးလား။ ဒါ ကျွန်တော့် အလုပ်ပဲ။")]],
+    mount: pagodaPuzzle },
   { id: "web", zh: "盘丝洞", scene: "cave", name: L("Пещера Паутин", "The Cave of Silken Webs", "ပင့်ကူအိမ်ဂူ"),
     intro: [["tang", L("Ученики! Я попал в паутину…", "Disciples! I'm caught in a web…", "တပည့်တို့! ငါ ပင့်ကူအိမ်ထဲ ပိတ်မိနေပြီ…")],
       ["spider", L("Семь сестёр сплели паутину так, что нити держат друг друга. Распутай, если сможешь.", "Seven sisters wove this web so that the threads hold each other fast. Untangle it, if you can.", "ညီအစ်မ ခုနစ်ယောက်က ချည်မျှင်တွေ တစ်ခုနဲ့တစ်ခု ချုပ်ထားအောင် ရက်ထားတယ်။ ဖြေနိုင်ရင် ဖြေကြည့်။")],
@@ -311,5 +122,17 @@ export const TRIALS = [
       L("Найдите узел с наибольшим числом нитей: это центр. Поставьте его в середину.", "Find the knot with the most threads: that's the centre. Put it in the middle.", "ချည်မျှင် အများဆုံး ချည်ထုံးက အလယ်။ အလယ်မှာ ထားပါ။"),
       L("Узлы с двумя-тремя нитями — края и углы сетки. Разведите их по кругу, а остальные поставьте внутрь.", "Knots with two or three threads are the edges and corners of the mesh. Spread them around the outside and put the rest inside.", "ချည်မျှင် နှစ်-သုံးခုပါတဲ့ ချည်ထုံးတွေက အစွန်းနဲ့ ထောင့်တွေ။ အပြင်ဘက်မှာ ဝိုင်းထားပြီး ကျန်တာကို အထဲမှာ ထားပါ။")],
     outro: [["spider", L("Нити… распустились.", "The threads… came undone.", "ချည်မျှင်တွေ… ပြေသွားပြီ။")], ["tang", L("Спасибо, ученики. Впереди ещё много испытаний.", "Thank you, disciples. Many trials still lie ahead.", "ကျေးဇူးပဲ တပည့်တို့။ ရှေ့မှာ စမ်းသပ်ချက်တွေ အများကြီး ကျန်သေးတယ်။")]],
+    coop: L("Вдвоём: узлы поделены пополам. Вы двигаете только узлы своего цвета.", "For two: the knots are shared out. You move only the knots of your colour.", "နှစ်ယောက်: ချည်ထုံးတွေကို ခွဲဝေထားတယ်။ ကိုယ့်အရောင် ချည်ထုံးတွေကိုပဲ ရွှေ့နိုင်တယ်။"),
     mount: webPuzzle },
+  { id: "pit", zh: "无底洞", scene: "pit", name: L("Бездонная пещера", "The Bottomless Pit", "အောက်ခြေမဲ့ ဂူ"),
+    intro: [["mouse", L("Я Госпожа из-под Земли, и танский монах станет моим мужем. В моей пещере вам не найти дороги: сотни ходов и ловушек.", "I am the Lady from Beneath the Earth, and the Tang monk will be my husband. You'll never find your way in my cave: hundreds of tunnels and traps.", "ငါက မြေအောက် အရှင်မ၊ ထန်ဘုန်းကြီးက ငါ့ခင်ပွန်း ဖြစ်လာမယ်။ ငါ့ဂူထဲ လမ်းရှာမတွေ့နိုင်ဘူး: ဥမင် ရာနဲ့ချီ၊ ထောင်ချောက်တွေ ပြည့်နေတယ်။")],
+      ["wukong", L("Ловушки она ставит хитро, но по счёту: на каждом камне в проходе выбито, сколько ловушек вокруг.", "She lays her traps cleverly, but by count: every stone in the passage is carved with how many traps lie around it.", "သူ ထောင်ချောက်တွေကို လိမ္မာပါးနပ်စွာ ထောင်ပေမယ့် ရေတွက်ထားတယ်: လမ်းထဲက ကျောက်တုံးတိုင်းမှာ ပတ်လည်မှာ ထောင်ချောက် ဘယ်နှစ်ခု ရှိလဲ ထွင်းထားတယ်။")],
+      ["bajie", L("Я пойду сзади. Далеко сзади.", "I'll go at the back. Far at the back.", "ကျွန်တော် နောက်ကနေ လိုက်မယ်။ အဝေးကြီး နောက်ကနေ။")]],
+    rules: L("Откройте все безопасные клетки. Число показывает, сколько ловушек в восьми соседних клетках. Ловушки можно отмечать флажком: долгим нажатием, правой кнопкой или в режиме «Отметить». Наступили на ловушку — ошибка, но поиск продолжается. Ловушек 12, и всё решается без угадывания.", "Open every safe square. A number tells how many traps are in the eight squares around it. You can mark traps with a flag: a long press, a right click or the Mark mode. Step on a trap and it's a mistake, but the search goes on. There are 12 traps, and everything can be worked out without guessing.", "ဘေးကင်းတဲ့ အကွက်အားလုံးကို ဖွင့်ပါ။ ဂဏန်းက ပတ်လည် အကွက် ရှစ်ကွက်ထဲမှာ ထောင်ချောက် ဘယ်နှစ်ခု ရှိလဲ ပြတယ်။ ထောင်ချောက်တွေကို အလံနဲ့ မှတ်နိုင်တယ်: ကြာကြာ နှိပ်တာ၊ ညာဘက်ကလစ် ဒါမှမဟုတ် «မှတ်မယ်» ပုံစံ။ ထောင်ချောက်ကို နင်းမိရင် အမှား၊ ဒါပေမယ့် ရှာတာ ဆက်လုပ်နိုင်တယ်။ ထောင်ချောက် ၁၂ ခု ရှိပြီး မခန့်မှန်းဘဲ အားလုံး ဖြေရှင်းနိုင်တယ်။"),
+    coop: L("Вдвоём: левые ходы (пять столбцов) обыскивает первый игрок, правые (четыре) — второй. Числа видны обоим, подсказывайте друг другу на границе.", "For two: the first player searches the left tunnels (five columns), the second the right ones (four). Both see all the numbers; help each other along the border.", "နှစ်ယောက်: ပထမ ကစားသူက ဘယ်ဘက် ဥမင် (ကော်လံ ငါးခု) ကို ရှာပြီး ဒုတိယက ညာဘက် (လေးခု) ကို ရှာတယ်။ ဂဏန်းတွေကို နှစ်ယောက်လုံး မြင်ရတယ်၊ နယ်စပ်မှာ အချင်းချင်း ကူညီပါ။"),
+    hints: [L("Если у числа столько же закрытых соседей, сколько оно показывает, все они — ловушки.", "If a number has exactly as many closed neighbours as it shows, they are all traps.", "ဂဏန်းတစ်ခုမှာ ပိတ်နေတဲ့ ဘေးအကွက် အရေအတွက်က ဂဏန်းနဲ့ တူရင် အားလုံး ထောင်ချောက်တွေ။"),
+      L("Если вокруг числа уже отмечено столько ловушек, сколько оно показывает, остальные соседи безопасны.", "If a number already has as many marked traps around it as it shows, its other neighbours are safe.", "ဂဏန်းပတ်လည်မှာ ဂဏန်းပြတဲ့အတိုင်း ထောင်ချောက် မှတ်ပြီးပြီဆိုရင် ကျန်တဲ့ ဘေးအကွက်တွေ ဘေးကင်းတယ်။"),
+      L("Сравнивайте соседние числа: 1 и 2 рядом вдоль стены часто показывают, где ловушка.", "Compare neighbouring numbers: a 1 next to a 2 along a wall often shows where the trap is.", "ဘေးချင်းကပ် ဂဏန်းတွေကို နှိုင်းယှဉ်ပါ: နံရံတလျှောက် ၁ နဲ့ ၂ ကပ်နေရင် ထောင်ချောက် ဘယ်မှာလဲ မကြာခဏ ပြတတ်တယ်။")],
+    outro: [["mouse", L("Нашли… все мои ходы нашли.", "You found… you found all my tunnels.", "တွေ့သွားပြီ… ငါ့ ဥမင်အားလုံး တွေ့သွားပြီ။")], ["tang", L("Спасибо, ученики. Это двенадцатое испытание. Сколько их ещё впереди?", "Thank you, disciples. That was the twelfth trial. How many more lie ahead?", "ကျေးဇူးပဲ တပည့်တို့။ ဒါ ဆယ့်နှစ်ခုမြောက် စမ်းသပ်ချက်။ ရှေ့မှာ ဘယ်နှစ်ခု ကျန်သေးလဲ။")], ["wukong", L("Шестьдесят девять, учитель. Я считаю.", "Sixty-nine, Master. I'm counting.", "ခြောက်ဆယ့်ကိုးခု ဆရာ။ ကျွန်တော် ရေတွက်နေတယ်။")]],
+    mount: pitPuzzle },
 ];
